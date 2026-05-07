@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react"
 import { motion, AnimatePresence, easeInOut } from "framer-motion"
-import { Menu, X, ArrowRight, Zap, Search } from "lucide-react"
+import { Menu, X, ArrowRight } from "lucide-react"
 import Link from "next/link"
 import { AnimatedThemeToggler } from "../ui/animated-theme-toggler"
 import Image from "next/image"
