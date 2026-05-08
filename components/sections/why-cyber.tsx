@@ -230,7 +230,7 @@ export default function WhyCyber() {
               transition={{ duration: 0.6, ease: "easeOut" }}
               className="text-center text-2xl font-bold tracking-tight md:text-3xl"
             >
-              Cybersecurity Salary Potential
+              Cybersecurity Monthly Salary Potential
             </motion.h2>
             <motion.p
               initial={{ opacity: 0, y: 20 }}
@@ -247,15 +247,16 @@ export default function WhyCyber() {
           <div className="relative space-y-6 md:space-y-8">
             {[
               {
-                range: "$50,000 - $80,000",
-                job: "SOC Analyst Tier 1",
-                description: "United States of America",
-              },
-              {
-                range: "$65,000 - $95,000",
+                range: "₱340,728.20 - ₱834,383.08",
                 job: "Security Analyst / Cybersecurity Analyst",
                 description: "United States of America",
               },
+              {
+                range: "₱182,272.57 - ₱386,357.10",
+                job: "SOC Analyst Tier 1",
+                description: "United States of America",
+              },
+
               {
                 range: "₱65,000 - ₱80,000",
                 job: "Threat Intelligence Analyst",

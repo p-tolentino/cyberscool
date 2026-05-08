@@ -118,28 +118,54 @@ function FAQItem({ question, answer, index }: FAQItemProps) {
 export default function FAQs() {
   const faqs: Omit<FAQItemProps, "index">[] = [
     {
-      question: "Do I need a cybersecurity background?",
+      question: "Who is CybersCool Defcon?",
       answer:
-        "No, our career previews are designed for absolute beginners! We will cover the basics and give you a clear roadmap to get started in cybersecurity, regardless of your prior experience.",
+        "CybersCool Defcon Inc. is a cybersecurity training provider in the Philippines focused on practical, skills-based learning. Its programs emphasize hands-on labs, simulations, and industry-aligned cybersecurity training.",
     },
     {
-      question: "Who is CybersCool Defcon Inc.?",
+      question: "Is the career preview really free?",
       answer:
-        "We are the first globally accredited cyber school in the Philippines and fully TESDA accredited. Our programs are aligned with the NIST NICE Framework and recognized by government agencies including NBI, NDCP, and AFP.",
+        "Yes. The 30-minute cybersecurity career preview is free to attend. It is designed to help you understand the cybersecurity career opportunity, beginner-friendly roles, salary potential, and possible next steps.",
     },
     {
-      question: "What is the schedule for career previews?",
-      answer: "Career previews are held on select Saturdays.",
+      question: "Do I need cybersecurity experience to join?",
+      answer:
+        "No. The preview is designed for people with no cybersecurity experience. It is especially helpful for IT professionals, tech graduates, career shifters, and beginners who want to know whether cybersecurity is a realistic path for them.",
     },
     {
-      question: "Is the career preview free?",
+      question: "Is this only for IT professionals?",
       answer:
-        "Yes! We offer free orientation sessions on select Saturdays. You can register on this page — just scroll down to the registration form and select an available date. We'll send you the meeting details via email.",
+        "No. IT professionals may have an advantage because they already understand technology, systems, users, or networks. However, the preview is also open to tech graduates, BPO professionals, career shifters, and anyone seriously exploring cybersecurity.",
     },
     {
-      question: "Do I have to physically attend?",
+      question: "What will I learn in the free preview?",
       answer:
-        "No, our career previews are held online via Zoom, so you can join from anywhere with an internet connection!",
+        "You will learn why cybersecurity demand is growing, what beginner-friendly roles are available, what salary ranges may look like, what skills you need to build first, and what common myths stop people from starting.",
+    },
+    {
+      question: "What beginner-friendly roles can I aim for?",
+      answer:
+        "Depending on your background and training, possible entry points may include SOC Analyst Tier 1, Cybersecurity Associate, IT Auditor, GRC Associate, Cybersecurity Operations Technician, Incident Response Assistant, or Threat Intelligence Analyst.",
+    },
+    {
+      question: "Will salary ranges be discussed?",
+      answer:
+        "Yes. The preview will discuss realistic local and global salary ranges, including what factors affect compensation such as role, experience, company, location, certifications, and skill level. Salary figures are for general reference and are not guaranteed.",
+    },
+    {
+      question: "Will there be a training offer during the preview?",
+      answer:
+        "Yes. Toward the end of the session, CybersCool Defcon may introduce its structured Zero-to-Hero Cyber Defense Program for those who want guided, hands-on training. There is no obligation to enroll. The main purpose of the preview is to give you career clarity. You will learn about the cybersecurity industry, possible roles, salary potential, beginner misconceptions, and the realistic path to start. The training pathway is presented only for those who want help taking the next step.",
+    },
+    {
+      question: "How long is the session?",
+      answer:
+        "The career preview is approximately 30 minutes, with time allotted for key insights and possible Q&A depending on the session format.",
+    },
+    {
+      question: "What if I am interested but not ready to enroll in a course?",
+      answer:
+        "That is completely fine. The preview is meant to help you understand whether cybersecurity is worth exploring. You can attend to learn, ask questions, and decide your next step afterward.",
     },
   ]
 

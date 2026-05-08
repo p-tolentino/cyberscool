@@ -458,7 +458,7 @@ export function OrientationForm({
 
                       <Button
                         type="submit"
-                        className="w-full bg-primary/70 bg-linear-to-b from-brand-purple via-brand-purple/70 to-primary text-foreground hover:bg-primary/90"
+                        className="w-full bg-primary/70 bg-linear-to-b from-brand-purple via-brand-purple/70 to-primary text-white hover:bg-primary/90"
                         disabled={
                           isLoadingDates ||
                           orientationDates.length === 0 ||

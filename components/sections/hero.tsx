@@ -34,7 +34,7 @@ export function Hero() {
         className="absolute inset-0 -z-1 size-full mask-[radial-gradient(1200px_circle_at_center,white,transparent)]"
         squareSize={30}
         gridGap={12}
-        color="#2ba2c3"
+        color="#616161"
         maxOpacity={0.2}
         flickerChance={0.05}
         height={1600}

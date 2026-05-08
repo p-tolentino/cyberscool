@@ -7,7 +7,6 @@ import {
   LinkedinIcon as LinkedIn,
   FacebookIcon as Facebook,
 } from "../icons/il-icons"
-import { Separator } from "../ui/separator"
 import { PrivacyDialog } from "../privacy-modal"
 
 const data = () => ({
