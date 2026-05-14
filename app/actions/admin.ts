@@ -13,7 +13,7 @@ export async function adminLogin(formData: FormData) {
     password !== process.env.ADMIN_PASSWORD &&
     password !== process.env.NEXT_PUBLIC_ADMIN_PASSWORD
   ) {
-    return { error: "Invalid password" }
+    return { success: false, error: "Invalid password" }
   }
 
   const cookieStore = await cookies()
@@ -25,7 +25,7 @@ export async function adminLogin(formData: FormData) {
     maxAge: 60 * 60 * 8,
   })
 
-  return { success: true }
+  return { success: true, error: "" }
 }
 
 export async function adminLogout() {
@@ -48,7 +48,7 @@ export async function checkAdminSession() {
 async function requireAdmin() {
   const cookieStore = await cookies()
   if (!cookieStore.has("admin_session")) {
-    return { error: "Unauthorized" }
+    return { success: false, error: "Unauthorized" }
   }
 }
 
@@ -81,9 +81,9 @@ export async function toggleDateStatus(dateId: string, currentStatus: boolean) {
     .update({ is_active: !currentStatus })
     .eq("id", dateId)
 
-  if (error) return { error: error.message }
+  if (error) return { success: false, error: error.message }
   revalidatePath("/admin")
-  return { success: true }
+  return { success: true, error: "" }
 }
 
 export async function toggleEmailSent(regId: string, currentStatus: boolean) {
@@ -95,9 +95,9 @@ export async function toggleEmailSent(regId: string, currentStatus: boolean) {
     .update({ email_sent: !currentStatus })
     .eq("id", regId)
 
-  if (error) return { error: error.message }
+  if (error) return { success: false, error: error.message }
   revalidatePath("/admin")
-  return { success: true }
+  return { success: true, error: "" }
 }
 
 export async function toggleContacted(regId: string, currentStatus: boolean) {
@@ -109,9 +109,9 @@ export async function toggleContacted(regId: string, currentStatus: boolean) {
     .update({ contacted: !currentStatus })
     .eq("id", regId)
 
-  if (error) return { error: error.message }
+  if (error) return { success: false, error: error.message }
   revalidatePath("/admin")
-  return { success: true }
+  return { success: true, error: "" }
 }
 
 export async function createOrientationDate(formData: FormData) {
@@ -125,9 +125,9 @@ export async function createOrientationDate(formData: FormData) {
     .from("orientation_dates")
     .insert({ label, value: date, is_active: true })
 
-  if (error) return { error: error.message }
+  if (error) return { success: false, error: error.message }
   revalidatePath("/admin")
-  return { success: true }
+  return { success: true, error: "" }
 }
 
 export async function deleteRegistration(regId: string) {
@@ -139,9 +139,9 @@ export async function deleteRegistration(regId: string) {
     .delete()
     .eq("id", regId)
 
-  if (error) return { error: error.message }
+  if (error) return { success: false, error: error.message }
   revalidatePath("/admin")
-  return { success: true }
+  return { success: true, error: "" }
 }
 
 export async function deleteOrientationDate(dateId: string) {
@@ -153,9 +153,9 @@ export async function deleteOrientationDate(dateId: string) {
     .delete()
     .eq("id", dateId)
 
-  if (error) return { error: error.message }
+  if (error) return { success: false, error: error.message }
   revalidatePath("/admin")
-  return { success: true }
+  return { success: true, error: "" }
 }
 
 export async function updateOrientationDate(formData: FormData) {
@@ -171,7 +171,7 @@ export async function updateOrientationDate(formData: FormData) {
     .update({ label, value })
     .eq("id", dateId)
 
-  if (error) return { error: error.message }
+  if (error) return { success: false, error: error.message }
   revalidatePath("/admin")
-  return { success: true }
+  return { success: true, error: "" }
 }

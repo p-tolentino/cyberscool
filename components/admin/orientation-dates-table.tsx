@@ -80,7 +80,7 @@ export function OrientationDatesTable({ dates }: OrientationDatesTableProps) {
 
   const handleToggle = async (date: OrientationDate) => {
     const result = await toggleDateStatus(date.id, date.is_active)
-    if (result?.error) {
+    if (result.error) {
       toast.error("Failed to update date status")
     } else {
       setDatesState((prev) =>
@@ -94,7 +94,7 @@ export function OrientationDatesTable({ dates }: OrientationDatesTableProps) {
 
   const handleDelete = async (id: string, label: string) => {
     const result = await deleteOrientationDate(id)
-    if (result?.error) {
+    if (result.error) {
       toast.error("Failed to delete date")
     } else {
       setDatesState((prev) => prev.filter((d) => d.id !== id))
@@ -245,7 +245,7 @@ function CreateDateDialog() {
     formData.set("label", label)
     formData.set("date", data.datetime.toISOString())
     const result = await createOrientationDate(formData)
-    if (result?.error) {
+    if (result.error) {
       toast.error(result.error)
     } else {
       toast.success("Orientation date created")
@@ -314,7 +314,7 @@ function EditDateDialog({ date }: { date: OrientationDate }) {
     formData.set("label", label)
     formData.set("date", data.datetime.toISOString())
     const result = await updateOrientationDate(formData)
-    if (result?.error) {
+    if (result.error) {
       toast.error(result.error)
     } else {
       toast.success("Orientation date updated")

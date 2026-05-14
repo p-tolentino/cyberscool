@@ -32,7 +32,7 @@ export function AdminLogin() {
       const formData = new FormData()
       formData.set("password", password)
       const result = await adminLogin(formData)
-      if (result?.error) {
+      if (result.error) {
         setError(result.error)
         setPassword("")
       } else {

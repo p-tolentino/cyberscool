@@ -61,7 +61,7 @@ export function RegistrationsTable({
 
   const handleToggleEmail = async (reg: Registration) => {
     const result = await toggleEmailSent(reg.id, reg.email_sent)
-    if (result?.error) {
+    if (result.error) {
       toast.error("Failed to update email status")
     } else {
       setRegsState((prev) =>
@@ -75,7 +75,7 @@ export function RegistrationsTable({
 
   const handleToggleContact = async (reg: Registration) => {
     const result = await toggleContacted(reg.id, reg.contacted)
-    if (result?.error) {
+    if (result.error) {
       toast.error("Failed to update contact status")
     } else {
       setRegsState((prev) =>
@@ -89,7 +89,7 @@ export function RegistrationsTable({
 
   const handleDelete = async (id: string) => {
     const result = await deleteRegistration(id)
-    if (result?.error) {
+    if (result.error) {
       toast.error("Failed to delete registration")
     } else {
       setRegsState((prev) => prev.filter((r) => r.id !== id))
