@@ -97,11 +97,7 @@ export default function Header() {
               whileHover={{ scale: 1.02 }}
               transition={{ type: "spring", stiffness: 400, damping: 25 }}
             >
-              <Link
-                prefetch={false}
-                href="/"
-                className="flex items-center space-x-3"
-              >
+              <Link href="/" className="flex items-center space-x-3">
                 <div className="flex h-9 w-9 items-center justify-center bg-transparent">
                   <Image
                     alt="Cyberscool Defcon Inc."
@@ -132,7 +128,6 @@ export default function Header() {
                   onMouseLeave={() => setHoveredItem(null)}
                 >
                   <Link
-                    prefetch={false}
                     href={`/#${item.href}`}
                     className="relative rounded-lg px-4 py-2 text-sm font-medium text-foreground/80 transition-colors duration-200 hover:text-foreground"
                   >
@@ -170,7 +165,6 @@ export default function Header() {
                 whileTap={{ scale: 0.98 }}
               >
                 <Link
-                  prefetch={false}
                   href="/#orientation-form"
                   className="inline-flex items-center space-x-2 text-sm font-medium transition-all duration-200"
                 >
@@ -229,7 +223,6 @@ export default function Header() {
                   {navItems.map((item) => (
                     <motion.div key={item.name} variants={mobileItemVariants}>
                       <Link
-                        prefetch={false}
                         href={`/#${item.href}`}
                         className="block rounded-lg px-4 py-3 font-medium text-foreground transition-colors duration-200 hover:bg-muted"
                         onClick={() => {
@@ -243,18 +236,23 @@ export default function Header() {
                 </div>
 
                 <motion.div
-                  className="space-y-3 border-t border-border pt-6"
+                  className="w-full space-y-3 border-t border-border pt-6"
                   variants={mobileItemVariants}
                 >
                   <Link
-                    prefetch={false}
                     href="/#orientation-form"
-                    className="block w-full rounded-lg bg-brand-purple py-3 text-center font-medium text-foreground transition-all duration-200 hover:bg-brand-purple/90"
-                    onClick={() => {
-                      setIsMobileMenuOpen(false)
-                    }}
+                    className="inline-flex w-full items-center space-x-2 text-sm font-medium transition-all duration-200"
                   >
-                    Reserve My Free Seat
+                    <ShimmerButton
+                      aria-label="Reserve My Free Seat"
+                      className="group h-10 w-full gap-1 rounded-md text-white"
+                    >
+                      Reserve My Free Seat
+                      <ArrowRight
+                        data-icon="inline-end"
+                        className="size-4 transition-all duration-100 group-hover:ml-1"
+                      />
+                    </ShimmerButton>
                   </Link>
                 </motion.div>
               </div>

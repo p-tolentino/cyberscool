@@ -4,15 +4,7 @@ import { motion, useInView } from "framer-motion"
 import { useRef } from "react"
 import { useTheme } from "next-themes"
 import { cn } from "@/lib/utils"
-import {
-  Award,
-  Building,
-  CheckCircle,
-  Clock,
-  BanknoteArrowUp,
-  UserX,
-  UserSearch,
-} from "lucide-react"
+import { Building, BanknoteArrowUp, UserX, UserSearch } from "lucide-react"
 import { NumberTicker } from "../ui/number-ticker"
 
 interface StatItemProps {
@@ -80,7 +72,7 @@ const StatItem = ({
               <span className="ml-1 text-sm font-medium opacity-70">
                 Trillion
               </span>
-            ) : label === "Global workforce gap" ? (
+            ) : label === "Unfilled jobs globally as of 2025" ? (
               <span className="ml-1 text-sm font-medium opacity-70">
                 Million
               </span>
@@ -96,13 +88,37 @@ const StatItem = ({
   )
 }
 
+const cyberRoles = [
+  {
+    range: "$68,000 - $167,000",
+    job: "Security Analyst / Cybersecurity Analyst",
+    description: "United States of America",
+  },
+  {
+    range: "$36,000 - $77,000",
+    job: "SOC Analyst Tier 1",
+    description: "United States of America",
+  },
+
+  {
+    range: "$13,000 - $16,000",
+    job: "Security Analyst / Cybersecurity Analyst",
+    description: "Philippines",
+  },
+  {
+    range: "$8,000 -   $16,000",
+    job: "SOC Analyst Tier 1",
+    description: "Philippines",
+  },
+]
+
 export default function WhyCyber() {
   const aboutRef = useRef(null)
   const statsRef = useRef(null)
-  const timelineRef = useRef(null)
+  const salaryRef = useRef(null)
 
   const aboutInView = useInView(aboutRef, { once: true, amount: 0.3 })
-  const timelineInView = useInView(timelineRef, { once: true, amount: 0.2 })
+  const salaryInView = useInView(salaryRef, { once: true, amount: 0.2 })
 
   const stats = [
     {
@@ -114,7 +130,7 @@ export default function WhyCyber() {
     },
     {
       value: 4.8,
-      label: "Global workforce gap",
+      label: "Unfilled jobs globally as of 2025",
       icon: <UserX className="h-5 w-5" />,
       delay: 0.1,
       decimalPlaces: 1,
@@ -220,22 +236,22 @@ export default function WhyCyber() {
         </div>
 
         {/* Salary Range Section */}
-        <div ref={timelineRef} className="relative mx-auto max-w-4xl space-y-8">
+        <div ref={salaryRef} className="relative mx-auto max-w-4xl space-y-8">
           <div>
             <motion.h2
               initial={{ opacity: 0, y: 20 }}
               animate={
-                timelineInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }
+                salaryInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }
               }
               transition={{ duration: 0.6, ease: "easeOut" }}
               className="text-center text-2xl font-bold tracking-tight md:text-3xl"
             >
-              Cybersecurity Monthly Salary Potential
+              Cybersecurity Annual Salary Potential
             </motion.h2>
             <motion.p
               initial={{ opacity: 0, y: 20 }}
               animate={
-                timelineInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }
+                salaryInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }
               }
               transition={{ duration: 0.6, ease: "easeOut" }}
               className="text-center text-base leading-relaxed text-muted-foreground"
@@ -245,29 +261,12 @@ export default function WhyCyber() {
           </div>
 
           <div className="relative space-y-6 md:space-y-8">
-            {[
-              {
-                range: "₱340,728.20 - ₱834,383.08",
-                job: "Security Analyst / Cybersecurity Analyst",
-                description: "United States of America",
-              },
-              {
-                range: "₱182,272.57 - ₱386,357.10",
-                job: "SOC Analyst Tier 1",
-                description: "United States of America",
-              },
-
-              {
-                range: "₱65,000 - ₱80,000",
-                job: "Threat Intelligence Analyst",
-                description: "Philippines",
-              },
-            ].map((item, index) => (
+            {cyberRoles.map((item, index) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, x: -20 }}
                 animate={
-                  timelineInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -20 }
+                  salaryInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -20 }
                 }
                 transition={{
                   duration: 0.5,
@@ -284,7 +283,7 @@ export default function WhyCyber() {
                       {item.range}
                     </div>
 
-                    {/* Desktop: Timeline style */}
+                    {/* Desktop */}
                     <div className="hidden md:block">
                       <div className="text-xl font-bold text-primary">
                         {item.range}

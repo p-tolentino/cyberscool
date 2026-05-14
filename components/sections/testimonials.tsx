@@ -483,7 +483,7 @@ export default function Testimonials() {
           <div className="flex flex-col gap-6 md:flex-row md:gap-8">
             {/* Left side - Static highlighted testimonial */}
             <div className="w-full md:w-1/3">
-              <div className="mt-25 items-center justify-center gap-5">
+              <div className="items-center justify-center gap-5 md:mt-25">
                 <TestimonialCard
                   {...highlightedTestimonial}
                   className="shadow-lg shadow-sky-200 dark:border-sky-800 dark:shadow-sky-800"
@@ -492,34 +492,41 @@ export default function Testimonials() {
             </div>
 
             {/* Right side - Single marquee with remaining testimonials */}
-            <div className="w-full md:w-2/3">
+            <div className="relative w-full md:w-2/3">
+              <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-10 w-full bg-linear-to-b from-background from-20% to-transparent md:hidden"></div>
               <Marquee
                 vertical
                 className="h-150 [--duration:30s] md:h-125"
                 pauseOnHover
               >
-                <div className="space-y-4 py-2">
-                  {testimonials.map((card, idx) => (
-                    <motion.div
-                      key={idx}
-                      initial={{ opacity: 0 }}
-                      whileInView={{ opacity: 1 }}
-                      viewport={{ once: true }}
-                      transition={{
-                        delay: card.delay,
-                        duration: 1.2,
-                      }}
-                    >
-                      <TestimonialCard {...card} />
-                    </motion.div>
-                  ))}
-                </div>
+                {testimonials.map((card, idx) => (
+                  <motion.div
+                    key={idx}
+                    initial={{ opacity: 0 }}
+                    whileInView={{ opacity: 1 }}
+                    viewport={{ once: true }}
+                    transition={{
+                      delay: card.delay,
+                      duration: 1.2,
+                    }}
+                  >
+                    <TestimonialCard {...card} />
+                  </motion.div>
+                ))}
               </Marquee>
             </div>
           </div>
         </div>
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/4 w-full bg-linear-to-t from-background from-20%"></div>
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-1/4 w-full bg-linear-to-b from-background from-20%"></div>
+
+        {/* Bottom gradient - less intense and lower on mobile */}
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 w-full bg-linear-to-t from-background from-20% md:h-1/4">
+          {/* Mobile uses from-30% (less intense), desktop keeps from-20% */}
+          <div className="block h-10 bg-linear-to-t from-background from-30% to-transparent md:hidden" />
+          <div className="hidden h-full bg-linear-to-t from-background from-20% to-transparent md:block" />
+        </div>
+
+        {/* Top gradient - only visible on desktop, positioned at top of section */}
+        <div className="pointer-events-none absolute inset-x-0 top-0 hidden h-1/4 w-full bg-linear-to-b from-background from-20% md:block"></div>
       </div>
     </section>
   )

@@ -1,30 +1,30 @@
 import {
-  Code,
   Brain,
-  Calculator,
   ClockFading,
-  BadgeCheck,
   UserSearch,
   ArrowRight,
+  Computer,
+  Code,
+  BriefcaseBusiness,
 } from "lucide-react"
 import { ShimmerButton } from "../ui/shimmer-button"
 import Link from "next/link"
 
 const myths = [
   {
+    icon: <Computer className="h-6 w-6" />,
+    title: "I need IT background first.",
+    desc: "You don't need to be an IT graduate to start. Many cybersecurity professionals began with zero technical background and learned through structured, hands-on training and real-world practice.",
+  },
+  {
+    icon: <BriefcaseBusiness className="h-6 w-6" />,
+    title: "If I have no experience, I won't get hired.",
+    desc: "Entry-level cyber roles exist. Many companies actively hire for curiosity, attitude, and foundational IT skills, not decades of experience.",
+  },
+  {
     icon: <Code className="h-6 w-6" />,
-    title: "I need to be a programmer first.",
-    desc: "You don't need to be a coding expert. Many cybersecurity roles focus on analysis, compliance, and operations — not programming.",
-  },
-  {
-    icon: <BadgeCheck className="h-6 w-6" />,
-    title: "I need years of experience.",
-    desc: "Entry-level cyber roles exist. Companies hire for curiosity, attitude, and foundational IT skills — not decades of experience.",
-  },
-  {
-    icon: <Calculator className="h-6 w-6" />,
-    title: "I need to be good at math.",
-    desc: "Most cyber roles require logic and problem-solving, not advanced calculus or complex mathematics.",
+    title: "I need to know how to code first.",
+    desc: "Many entry-level roles (like SOC Analyst) require little to no coding. Scripting helps, but it's not a starting barrier.",
   },
   {
     icon: <Brain className="h-6 w-6" />,
@@ -34,12 +34,12 @@ const myths = [
   {
     icon: <ClockFading className="h-6 w-6" />,
     title: "It's too late for me to shift.",
-    desc: "Career shifters bring valuable diverse experience. Many successful cyber pros started in their 30s, 40s, and beyond.",
+    desc: "Many successful cybersecurity professionals started in their 30s, 40s, and beyond. Cybersecurity rewards adaptability, curiosity, and continuous learning, not age.",
   },
   {
     icon: <UserSearch className="h-6 w-6" />,
     title: "There are no beginner-friendly cyber roles.",
-    desc: "Roles like SOC Analyst, GRC Associate, and IT Auditor are designed for beginners. You just need the right roadmap.",
+    desc: "Roles like Cybersecurity Analyst and SOC Analyst are designed for beginners. You just need the right roadmap, training, and hands-on skills.",
   },
 ]
 
@@ -47,10 +47,10 @@ export default function MythsToBreak() {
   return (
     <section className="relative py-20">
       <div className="mx-auto max-w-7xl px-4 md:px-8">
-        <div className="relative mx-auto max-w-2xl sm:text-center">
+        <div className="relative mx-auto text-center">
           <div className="relative z-10">
             <h3 className="mt-4 text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
-              The Myths You&apos;ll Break
+              The Cybersecurity Myths You&apos;ll Break
             </h3>
             <p className="mt-3 text-foreground/60">
               Think cybersecurity is only for hackers? Think again. <br /> In
