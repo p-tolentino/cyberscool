@@ -38,9 +38,13 @@ export function AdminHeader() {
             <span className="text-foreground">Admin Dashboard</span>
           </div>
         </div>
-        <div className="flex items-center">
+        <div className="flex items-center gap-2">
           <AnimatedThemeToggler className="" />
-          <Button variant="ghost" size="sm" onClick={handleLogout}>
+          <Button
+            variant="secondary"
+            onClick={handleLogout}
+            className="px-4 py-5"
+          >
             <LogOutIcon className="mr-2 size-4" />
             Sign Out
           </Button>

@@ -106,6 +106,7 @@ export function RegistrationsTable({
       id: "name",
       accessorFn: (row) => `${row.first_name} ${row.last_name}`,
       header: "Name",
+      meta: "Name",
       enableSorting: true,
       cell: ({ row }) => (
         <span className="font-medium">
@@ -116,6 +117,7 @@ export function RegistrationsTable({
     {
       accessorKey: "email",
       header: "Email",
+      meta: "Email",
       enableSorting: true,
       cell: ({ row }) => (
         <a
@@ -129,6 +131,7 @@ export function RegistrationsTable({
     {
       accessorKey: "phone",
       header: "Phone",
+      meta: "Phone",
       cell: ({ row }) => (
         <span className="text-xs text-muted-foreground">
           {row.original.phone || "—"}
@@ -138,6 +141,7 @@ export function RegistrationsTable({
     {
       accessorKey: "orientation_date",
       header: "Orientation Date",
+      meta: "Orientation Date",
       cell: ({ row }) => (
         <span className="text-xs font-medium px-2 py-0.5 rounded-md bg-muted">
           {getDateLabel(row.original.orientation_date)}
@@ -147,6 +151,7 @@ export function RegistrationsTable({
     {
       accessorKey: "email_sent",
       header: "Email Sent",
+      meta: "Email Sent",
       cell: ({ row }) => {
         const sent = row.original.email_sent
         return (
@@ -170,6 +175,7 @@ export function RegistrationsTable({
     {
       accessorKey: "contacted",
       header: "Contacted",
+      meta: "Contacted",
       cell: ({ row }) => {
         const contacted = row.original.contacted
         return (
@@ -193,6 +199,7 @@ export function RegistrationsTable({
     {
       accessorKey: "created_at",
       header: "Registered At",
+      meta: "Registered At",
       enableSorting: true,
       cell: ({ row }) => {
         const d = new Date(row.original.created_at)
@@ -211,6 +218,7 @@ export function RegistrationsTable({
     },
     {
       id: "actions",
+      enableHiding: false,
       cell: ({ row }) => {
         const reg = row.original
         return (

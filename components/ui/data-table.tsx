@@ -102,7 +102,7 @@ export function DataTable<TData, TValue>({
               Columns <ChevronDown className="ml-2 size-4" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
+          <DropdownMenuContent align="end" className="w-56">
             {table
               .getAllColumns()
               .filter((column) => column.getCanHide())
@@ -110,13 +110,12 @@ export function DataTable<TData, TValue>({
                 return (
                   <DropdownMenuCheckboxItem
                     key={column.id}
-                    className="capitalize"
                     checked={column.getIsVisible()}
                     onCheckedChange={(value) =>
                       column.toggleVisibility(!!value)
                     }
                   >
-                    {column.id}
+                    {(column.columnDef.meta as string) || column.id}
                   </DropdownMenuCheckboxItem>
                 )
               })}

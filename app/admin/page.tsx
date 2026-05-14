@@ -27,12 +27,13 @@ export default async function AdminPage() {
   const safeRegs = registrations || []
 
   const stats = {
-    totalRegistrations: safeRegs.length,
-    todaySignups: safeRegs.filter(
+    thisMonthSignups: safeRegs.filter(
       (r) =>
-        new Date(r.created_at).toDateString() === new Date().toDateString()
+        new Date(r.created_at).getMonth() === new Date().getMonth() &&
+        new Date(r.created_at).getFullYear() === new Date().getFullYear()
     ).length,
     activeDates: safeDates.filter((d) => d.is_active).length,
+    pendingEmails: safeRegs.filter((r) => !r.email_sent).length,
     pendingContact: safeRegs.filter((r) => !r.contacted).length,
   }
 

@@ -10,9 +10,9 @@ interface AdminPanelProps {
   dates: OrientationDate[]
   registrations: Registration[]
   stats: {
-    totalRegistrations: number
-    todaySignups: number
+    thisMonthSignups: number
     activeDates: number
+    pendingEmails: number
     pendingContact: number
   }
 }
@@ -27,9 +27,9 @@ export default function AdminPanel({
       <AdminHeader />
       <main className="mx-auto max-w-7xl space-y-6 p-4 sm:p-6 lg:p-8">
         <StatsCards
-          totalRegistrations={stats.totalRegistrations}
-          todaySignups={stats.todaySignups}
+          thisMonthSignups={stats.thisMonthSignups}
           activeDates={stats.activeDates}
+          pendingEmails={stats.pendingEmails}
           pendingContact={stats.pendingContact}
         />
         <OrientationDatesTable dates={dates} />

@@ -106,14 +106,14 @@ export function OrientationDatesTable({ dates }: OrientationDatesTableProps) {
     {
       accessorKey: "label",
       header: "Scheduled Date & Time",
+      meta: "Scheduled Date & Time",
       enableSorting: true,
-      cell: ({ row }) => (
-        <span className="text-sm">{row.original.label}</span>
-      ),
+      cell: ({ row }) => <span className="text-sm">{row.original.label}</span>,
     },
     {
       accessorKey: "is_active",
       header: "Status",
+      meta: "Status",
       cell: ({ row }) => {
         const isActive = row.original.is_active
         return (
@@ -121,7 +121,7 @@ export function OrientationDatesTable({ dates }: OrientationDatesTableProps) {
             variant={isActive ? "default" : "secondary"}
             className={
               isActive
-                ? "gap-1.5 bg-green-100 text-green-700 dark:bg-green-950/30 dark:text-green-400 border-green-200 dark:border-green-900"
+                ? "gap-1.5 border-green-200 bg-green-100 text-green-700 dark:border-green-900 dark:bg-green-950/30 dark:text-green-400"
                 : "gap-1.5"
             }
           >
@@ -140,18 +140,16 @@ export function OrientationDatesTable({ dates }: OrientationDatesTableProps) {
     {
       accessorKey: "created_at",
       header: "Created",
+      meta: "Created",
       cell: ({ row }) => {
         const d = new Date(row.original.created_at)
-        const display = isNaN(d.getTime())
-          ? "—"
-          : format(d, "MMM d, yyyy")
-        return (
-          <span className="text-xs text-muted-foreground">{display}</span>
-        )
+        const display = isNaN(d.getTime()) ? "—" : format(d, "MMM d, yyyy")
+        return <span className="text-xs text-muted-foreground">{display}</span>
       },
     },
     {
       id: "actions",
+      enableHiding: false,
       cell: ({ row }) => {
         const date = row.original
         return (
@@ -160,19 +158,17 @@ export function OrientationDatesTable({ dates }: OrientationDatesTableProps) {
               <Button
                 variant="ghost"
                 size="icon"
-                className="size-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                className="size-8 opacity-0 transition-opacity group-hover:opacity-100"
               >
                 <MoreHorizontal className="size-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-44">
-              <DropdownMenuItem
-                onClick={() => handleToggle(date)}
-              >
+              <DropdownMenuItem onClick={() => handleToggle(date)}>
                 {date.is_active ? (
-                  <PowerOff className="size-4 mr-2" />
+                  <PowerOff className="mr-2 size-4" />
                 ) : (
-                  <Power className="size-4 mr-2" />
+                  <Power className="mr-2 size-4" />
                 )}
                 {date.is_active ? "Deactivate" : "Activate"}
               </DropdownMenuItem>
@@ -184,13 +180,15 @@ export function OrientationDatesTable({ dates }: OrientationDatesTableProps) {
                     variant="destructive"
                     onSelect={(e) => e.preventDefault()}
                   >
-                    <Trash2 className="size-4 mr-2" />
+                    <Trash2 className="mr-2 size-4" />
                     Delete
                   </DropdownMenuItem>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>Delete Orientation Date?</AlertDialogTitle>
+                    <AlertDialogTitle>
+                      Delete Orientation Date?
+                    </AlertDialogTitle>
                     <AlertDialogDescription>
                       Are you sure you want to delete "{date.label}"? This
                       action cannot be undone.
@@ -216,7 +214,7 @@ export function OrientationDatesTable({ dates }: OrientationDatesTableProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h3 className="font-heading text-lg font-bold">Orientation Dates</h3>
           <p className="text-sm text-muted-foreground">
@@ -259,8 +257,8 @@ function CreateDateDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button>
-          <Plus className="size-4 mr-2" />
+        <Button className="px-4 py-5">
+          <Plus className="mr-2 size-4" />
           Add New Date
         </Button>
       </DialogTrigger>
@@ -268,10 +266,7 @@ function CreateDateDialog() {
         <DialogHeader>
           <DialogTitle>Create Orientation Date</DialogTitle>
         </DialogHeader>
-        <form
-          onSubmit={form.handleSubmit(onSubmit)}
-          className="space-y-4 pt-4"
-        >
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
           <div className="space-y-2">
             <Label>Date & Time</Label>
             <DateTimePicker
@@ -331,7 +326,7 @@ function EditDateDialog({ date }: { date: OrientationDate }) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-          <Pencil className="size-4 mr-2" />
+          <Pencil className="mr-2 size-4" />
           Edit
         </DropdownMenuItem>
       </DialogTrigger>
@@ -339,10 +334,7 @@ function EditDateDialog({ date }: { date: OrientationDate }) {
         <DialogHeader>
           <DialogTitle>Edit Orientation Date</DialogTitle>
         </DialogHeader>
-        <form
-          onSubmit={form.handleSubmit(onSubmit)}
-          className="space-y-4 pt-4"
-        >
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
           <div className="space-y-2">
             <Label>Date & Time</Label>
             <DateTimePicker

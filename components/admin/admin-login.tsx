@@ -15,6 +15,8 @@ import {
   TriangleAlertIcon,
   ShieldCheck,
 } from "lucide-react"
+import Image from "next/image"
+import { AnimatedThemeToggler } from "../ui/animated-theme-toggler"
 
 export function AdminLogin() {
   const [password, setPassword] = useState("")
@@ -41,24 +43,29 @@ export function AdminLogin() {
 
   return (
     <div className="flex min-h-screen">
-      <div className="relative hidden w-110 items-center justify-center overflow-hidden bg-linear-to-br from-brand-purple to-brand-teal p-12 lg:flex">
+      <div className="relative hidden w-110 items-center justify-center overflow-hidden bg-muted/30 bg-linear-to-br p-12 lg:flex dark:bg-gray-200">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(255,255,255,0.15)_0%,transparent_60%),radial-gradient(ellipse_at_bottom_right,rgba(255,255,255,0.1)_0%,transparent_50%)]" />
         <div className="relative z-10 space-y-6 text-center">
-          <div className="inline-flex size-16 items-center justify-center rounded-2xl bg-white/15 backdrop-blur-sm">
-            <ShieldCheck className="size-8 text-white" />
+          <div className="inline-flex size-64 items-center justify-center">
+            <Image
+              alt="Cyberscool Defcon Inc."
+              width={140}
+              height={48}
+              src="/logo.png"
+              className="h-full w-auto object-contain"
+            />
           </div>
-          <h1 className="text-3xl font-bold text-white">CybersCool</h1>
-          <p className="mx-auto max-w-xs text-sm text-white/70">
+          <p className="mx-auto max-w-xs text-sm text-gray-500">
             Secure admin access for program management and lead tracking.
           </p>
         </div>
       </div>
 
-      <div className="flex flex-1 items-center justify-center p-8">
-        <div className="w-full max-w-sm space-y-6">
+      <div className="relative flex flex-1 justify-center p-8">
+        <div className="flex w-full max-w-sm flex-col justify-center space-y-6">
           <div className="space-y-1 text-center">
-            <div className="mb-4 inline-flex size-12 items-center justify-center rounded-xl bg-brand-purple/10 text-brand-purple lg:hidden">
-              <ShieldCheck className="size-6" />
+            <div className="mb-4 inline-flex size-12 items-center justify-center rounded-xl backdrop-blur-sm dark:bg-white/15">
+              <ShieldCheck className="size-6 dark:text-white" />
             </div>
             <h2 className="font-heading text-2xl font-bold">Welcome back</h2>
             <p className="text-sm text-muted-foreground">Admin Dashboard</p>
@@ -95,9 +102,9 @@ export function AdminLogin() {
                   tabIndex={-1}
                 >
                   {showPassword ? (
-                    <EyeOffIcon className="size-4 text-muted-foreground" />
-                  ) : (
                     <EyeIcon className="size-4 text-muted-foreground" />
+                  ) : (
+                    <EyeOffIcon className="size-4 text-muted-foreground" />
                   )}
                 </Button>
               </div>
@@ -134,6 +141,9 @@ export function AdminLogin() {
           >
             ← Back to website
           </Link>
+        </div>
+        <div className="absolute right-10 bottom-10">
+          <AnimatedThemeToggler />
         </div>
       </div>
     </div>
