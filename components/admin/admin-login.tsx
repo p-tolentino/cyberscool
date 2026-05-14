@@ -41,26 +41,26 @@ export function AdminLogin() {
 
   return (
     <div className="flex min-h-screen">
-      <div className="hidden lg:flex w-[440px] bg-gradient-to-br from-brand-purple to-brand-teal p-12 items-center justify-center relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,_rgba(255,255,255,0.15)_0%,_transparent_60%),_radial-gradient(ellipse_at_bottom_right,_rgba(255,255,255,0.1)_0%,_transparent_50%)]" />
-        <div className="relative z-10 text-center space-y-6">
+      <div className="relative hidden w-110 items-center justify-center overflow-hidden bg-linear-to-br from-brand-purple to-brand-teal p-12 lg:flex">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(255,255,255,0.15)_0%,transparent_60%),radial-gradient(ellipse_at_bottom_right,rgba(255,255,255,0.1)_0%,transparent_50%)]" />
+        <div className="relative z-10 space-y-6 text-center">
           <div className="inline-flex size-16 items-center justify-center rounded-2xl bg-white/15 backdrop-blur-sm">
             <ShieldCheck className="size-8 text-white" />
           </div>
           <h1 className="text-3xl font-bold text-white">CybersCool</h1>
-          <p className="text-white/70 text-sm max-w-xs mx-auto">
+          <p className="mx-auto max-w-xs text-sm text-white/70">
             Secure admin access for program management and lead tracking.
           </p>
         </div>
       </div>
 
-      <div className="flex-1 flex items-center justify-center p-8">
+      <div className="flex flex-1 items-center justify-center p-8">
         <div className="w-full max-w-sm space-y-6">
-          <div className="text-center space-y-1">
-            <div className="inline-flex size-12 items-center justify-center rounded-xl bg-brand-purple/10 text-brand-purple mb-4 lg:hidden">
+          <div className="space-y-1 text-center">
+            <div className="mb-4 inline-flex size-12 items-center justify-center rounded-xl bg-brand-purple/10 text-brand-purple lg:hidden">
               <ShieldCheck className="size-6" />
             </div>
-            <h2 className="text-2xl font-heading font-bold">Welcome back</h2>
+            <h2 className="font-heading text-2xl font-bold">Welcome back</h2>
             <p className="text-sm text-muted-foreground">Admin Dashboard</p>
           </div>
 
@@ -79,14 +79,18 @@ export function AdminLogin() {
                   placeholder="Enter admin password"
                   autoFocus
                   disabled={isPending}
-                  className={error ? "border-destructive ring-destructive/20 pr-10" : "pr-10"}
+                  className={
+                    error
+                      ? "border-destructive pr-10 ring-destructive/20"
+                      : "pr-10"
+                  }
                   aria-invalid={!!error}
                 />
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="absolute right-0 top-0 h-full"
+                  className="absolute top-0 right-0 h-full"
                   onClick={() => setShowPassword(!showPassword)}
                   tabIndex={-1}
                 >
@@ -98,7 +102,7 @@ export function AdminLogin() {
                 </Button>
               </div>
               {error && (
-                <p className="text-xs text-destructive flex items-center gap-1 animate-in slide-in-from-top-1 fade-in duration-150">
+                <p className="flex animate-in items-center gap-1 text-xs text-destructive duration-150 fade-in slide-in-from-top-1">
                   <TriangleAlertIcon className="size-3" />
                   {error}
                 </p>
@@ -113,12 +117,12 @@ export function AdminLogin() {
             >
               {isPending ? (
                 <>
-                  <span className="size-4 mr-2 animate-spin rounded-full border-2 border-background border-t-transparent" />
+                  <span className="mr-2 size-4 animate-spin rounded-full border-2 border-background border-t-transparent" />
                   Signing in...
                 </>
               ) : (
                 <>
-                  <LockIcon className="size-4 mr-2" /> Sign In
+                  <LockIcon className="mr-2 size-4" /> Sign In
                 </>
               )}
             </Button>
@@ -126,7 +130,7 @@ export function AdminLogin() {
 
           <Link
             href="/"
-            className="block text-sm text-muted-foreground hover:text-foreground text-center transition-colors"
+            className="block text-center text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
             ← Back to website
           </Link>

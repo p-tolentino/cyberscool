@@ -16,7 +16,7 @@ export function AdminHeader() {
   }
 
   return (
-      <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
       <div className="flex h-16 items-center justify-between px-6">
         <div className="flex items-center gap-3">
           <Link href="/" className="flex items-center">
@@ -41,7 +41,7 @@ export function AdminHeader() {
         <div className="flex items-center">
           <AnimatedThemeToggler className="" />
           <Button variant="ghost" size="sm" onClick={handleLogout}>
-            <LogOutIcon className="size-4 mr-2" />
+            <LogOutIcon className="mr-2 size-4" />
             Sign Out
           </Button>
         </div>
