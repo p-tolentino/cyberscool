@@ -4,8 +4,6 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { Toaster } from "@/components/ui/sonner"
 import { cn } from "@/lib/utils"
-import Header from "@/components/sections/header"
-import Footer from "@/components/sections/footer"
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" })
 const fontMono = Geist_Mono({ subsets: ["latin"], variable: "--font-mono" })
@@ -68,9 +66,7 @@ export default function RootLayout({
       <body>
         <ThemeProvider>
           <TooltipProvider>
-            <Header />
             {children}
-            <Footer />
             <Toaster richColors />
           </TooltipProvider>
         </ThemeProvider>

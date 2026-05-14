@@ -1,5 +1,10 @@
 import AdminPanel from "@/components/admin-panel"
-import { getOrientationDates, getProspects } from "../actions/admin"
+import { AdminLogin } from "@/components/admin/admin-login"
+import {
+  getOrientationDates,
+  getProspects,
+  checkAdminSession,
+} from "../actions/admin"
 
 export async function generateMetadata() {
   return {
@@ -10,9 +15,32 @@ export async function generateMetadata() {
 }
 
 export default async function AdminPage() {
+  const isAuthenticated = await checkAdminSession()
+
+  if (!isAuthenticated) {
+    return <AdminLogin />
+  }
+
   const dates = await getOrientationDates()
-
   const registrations = await getProspects()
+  const safeDates = dates || []
+  const safeRegs = registrations || []
 
-  return <AdminPanel dates={dates || []} registrations={registrations || []} />
+  const stats = {
+    totalRegistrations: safeRegs.length,
+    todaySignups: safeRegs.filter(
+      (r) =>
+        new Date(r.created_at).toDateString() === new Date().toDateString()
+    ).length,
+    activeDates: safeDates.filter((d) => d.is_active).length,
+    pendingContact: safeRegs.filter((r) => !r.contacted).length,
+  }
+
+  return (
+    <AdminPanel
+      dates={safeDates}
+      registrations={safeRegs}
+      stats={stats}
+    />
+  )
 }

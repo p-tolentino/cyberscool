@@ -8,12 +8,16 @@ import WhyCyber from "@/components/sections/why-cyber"
 import Testimonials from "@/components/sections/testimonials"
 import FAQs from "@/components/sections/faq"
 import { PartnerMarquee } from "@/components/sections/partner-marquee"
+import Header from "@/components/sections/header"
+import Footer from "@/components/sections/footer"
 
 export default async function HomePage() {
   const orientationDates = await getOrientationDates()
 
   return (
     <main>
+      <Header />
+
       <Hero />
 
       <SessionPreview />
@@ -49,6 +53,8 @@ export default async function HomePage() {
       <FAQSection />
 
        */}
+
+      <Footer />
     </main>
   )
 }
