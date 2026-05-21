@@ -13,7 +13,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogFooter,
 } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
@@ -35,6 +34,11 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 import {
   toggleDateStatus,
   createOrientationDate,
@@ -64,6 +68,124 @@ function generateLabel(datetime: Date) {
   return format(datetime, "MMMM d, yyyy (EEEE) - h:mm aa")
 }
 
+// ========== POPOVER FOR CREATING DATES ==========
+function CreateDatePopover({
+  onDateCreated,
+}: {
+  onDateCreated: (date: Date) => Promise<void>
+}) {
+  const [open, setOpen] = useState(false)
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const handleConfirm = async () => {
+    if (!selectedDate) {
+      toast.error("Please pick a date and time")
+      return
+    }
+    setIsSubmitting(true)
+    try {
+      await onDateCreated(selectedDate)
+      setOpen(false)
+      setSelectedDate(undefined)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button className="px-4 py-5">
+          <Plus className="mr-2 size-4" />
+          Add New Date
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0" align="start" side="bottom">
+        <div className="p-4 pb-2">
+          <DateTimePicker value={selectedDate} onChange={setSelectedDate} />
+        </div>
+        <div className="flex justify-end gap-2 border-t p-3">
+          <Button variant="outline" size="sm" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
+          <Button
+            size="sm"
+            onClick={handleConfirm}
+            disabled={!selectedDate || isSubmitting}
+          >
+            {isSubmitting ? "Creating..." : "Confirm Date"}
+          </Button>
+        </div>
+      </PopoverContent>
+    </Popover>
+  )
+}
+
+// ========== EDIT DIALOG (unchanged, still modal) ==========
+interface OrientationDateFormDialogProps {
+  mode: "edit"
+  initialDate?: Date
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  onSubmit: (data: FormValues) => Promise<void>
+}
+
+function OrientationDateFormDialog({
+  mode,
+  initialDate,
+  open,
+  onOpenChange,
+  onSubmit,
+}: OrientationDateFormDialogProps) {
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      datetime: initialDate,
+    },
+  })
+
+  const handleSubmit = async (data: FormValues) => {
+    await onSubmit(data)
+    form.reset()
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Edit Orientation Date</DialogTitle>
+        </DialogHeader>
+        <form
+          onSubmit={form.handleSubmit(handleSubmit)}
+          className="space-y-4 pt-4"
+        >
+          <div className="space-y-2">
+            <Label>Date & Time</Label>
+            <DateTimePicker
+              value={form.watch("datetime")}
+              onChange={(date) =>
+                form.setValue("datetime", date as Date, {
+                  shouldValidate: true,
+                })
+              }
+            />
+            {form.formState.errors.datetime && (
+              <p className="text-xs text-destructive">
+                {form.formState.errors.datetime.message}
+              </p>
+            )}
+          </div>
+          <DialogFooter>
+            <Button type="submit">Save Changes</Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+// ========== MAIN TABLE ==========
 interface OrientationDatesTableProps {
   dates: OrientationDate[]
 }
@@ -71,12 +193,15 @@ interface OrientationDatesTableProps {
 export function OrientationDatesTable({ dates }: OrientationDatesTableProps) {
   const [datesState, setDatesState] = useState(dates)
   const prevDates = useRef(dates)
+
   useEffect(() => {
     if (prevDates.current !== dates) {
       setDatesState(dates)
       prevDates.current = dates
     }
   }, [dates])
+
+  const [editingDate, setEditingDate] = useState<OrientationDate | null>(null)
 
   const handleToggle = async (date: OrientationDate) => {
     const result = await toggleDateStatus(date.id, date.is_active)
@@ -100,6 +225,20 @@ export function OrientationDatesTable({ dates }: OrientationDatesTableProps) {
       setDatesState((prev) => prev.filter((d) => d.id !== id))
       toast.success("Orientation date deleted")
     }
+  }
+
+  const handleCreateDate = async (datetime: Date) => {
+    const label = generateLabel(datetime)
+    const formData = new FormData()
+    formData.set("label", label)
+    formData.set("date", datetime.toISOString())
+    const result = await createOrientationDate(formData)
+    if (result.error) {
+      toast.error(result.error)
+      throw new Error(result.error)
+    }
+
+    toast.success("Orientation date created")
   }
 
   const columns: ColumnDef<OrientationDate>[] = [
@@ -172,7 +311,13 @@ export function OrientationDatesTable({ dates }: OrientationDatesTableProps) {
                 )}
                 {date.is_active ? "Deactivate" : "Activate"}
               </DropdownMenuItem>
-              <EditDateDialog date={date} />
+              <DropdownMenuItem
+                onSelect={(e) => e.preventDefault()}
+                onClick={() => setEditingDate(date)}
+              >
+                <Pencil className="mr-2 size-4" />
+                Edit
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <AlertDialog>
                 <AlertDialogTrigger asChild>
@@ -212,6 +357,28 @@ export function OrientationDatesTable({ dates }: OrientationDatesTableProps) {
     },
   ]
 
+  const handleEditSubmit = async (data: FormValues) => {
+    if (!editingDate) return
+    const label = generateLabel(data.datetime)
+    const formData = new FormData()
+    formData.set("id", editingDate.id)
+    formData.set("label", label)
+    formData.set("date", data.datetime.toISOString())
+    const result = await updateOrientationDate(formData)
+    if (result.error) {
+      toast.error(result.error)
+    } else {
+      toast.success("Orientation date updated")
+      setEditingDate(null)
+    }
+  }
+
+  const parsedEditingDate = editingDate
+    ? new Date(editingDate.value)
+    : undefined
+  const isValidEditDate =
+    parsedEditingDate && !isNaN(parsedEditingDate.getTime())
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -222,7 +389,7 @@ export function OrientationDatesTable({ dates }: OrientationDatesTableProps) {
             registration form.
           </p>
         </div>
-        <CreateDateDialog />
+        <CreateDatePopover onDateCreated={handleCreateDate} />
       </div>
 
       <DataTable
@@ -231,137 +398,16 @@ export function OrientationDatesTable({ dates }: OrientationDatesTableProps) {
         pageSize={5}
         pinnedColumns={{ left: ["label"] }}
       />
+
+      {editingDate && (
+        <OrientationDateFormDialog
+          mode="edit"
+          initialDate={isValidEditDate ? parsedEditingDate : undefined}
+          open={!!editingDate}
+          onOpenChange={(open) => !open && setEditingDate(null)}
+          onSubmit={handleEditSubmit}
+        />
+      )}
     </div>
-  )
-}
-
-function CreateDateDialog() {
-  const [open, setOpen] = useState(false)
-
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      datetime: undefined,
-    },
-  })
-
-  const onSubmit = async (data: FormValues) => {
-    const label = generateLabel(data.datetime)
-    const formData = new FormData()
-    formData.set("label", label)
-    formData.set("date", data.datetime.toISOString())
-    const result = await createOrientationDate(formData)
-    if (result.error) {
-      toast.error(result.error)
-    } else {
-      toast.success("Orientation date created")
-      setOpen(false)
-      form.reset()
-    }
-  }
-
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button className="px-4 py-5">
-          <Plus className="mr-2 size-4" />
-          Add New Date
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>Create Orientation Date</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
-          <div className="space-y-2">
-            <Label>Date & Time</Label>
-            <DateTimePicker
-              value={form.watch("datetime")}
-              onChange={(date) =>
-                form.setValue("datetime", date as Date, {
-                  shouldValidate: true,
-                })
-              }
-            />
-            {form.formState.errors.datetime && (
-              <p className="text-xs text-destructive">
-                {form.formState.errors.datetime.message}
-              </p>
-            )}
-          </div>
-          <DialogFooter>
-            <Button type="submit">Create Date</Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
-  )
-}
-
-function EditDateDialog({ date }: { date: OrientationDate }) {
-  const [open, setOpen] = useState(false)
-
-  const parsedDate = (() => {
-    const d = new Date(date.value)
-    return isNaN(d.getTime()) ? undefined : d
-  })()
-
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      datetime: parsedDate,
-    },
-  })
-
-  const onSubmit = async (data: FormValues) => {
-    const label = generateLabel(data.datetime)
-    const formData = new FormData()
-    formData.set("id", date.id)
-    formData.set("label", label)
-    formData.set("date", data.datetime.toISOString())
-    const result = await updateOrientationDate(formData)
-    if (result.error) {
-      toast.error(result.error)
-    } else {
-      toast.success("Orientation date updated")
-      setOpen(false)
-    }
-  }
-
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-          <Pencil className="mr-2 size-4" />
-          Edit
-        </DropdownMenuItem>
-      </DialogTrigger>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>Edit Orientation Date</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
-          <div className="space-y-2">
-            <Label>Date & Time</Label>
-            <DateTimePicker
-              value={form.watch("datetime")}
-              onChange={(date) =>
-                form.setValue("datetime", date as Date, {
-                  shouldValidate: true,
-                })
-              }
-            />
-            {form.formState.errors.datetime && (
-              <p className="text-xs text-destructive">
-                {form.formState.errors.datetime.message}
-              </p>
-            )}
-          </div>
-          <DialogFooter>
-            <Button type="submit">Save Changes</Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
   )
 }

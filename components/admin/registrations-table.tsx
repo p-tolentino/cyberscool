@@ -36,7 +36,6 @@ import type {
 import {
   MoreHorizontal,
   Phone,
-  Eye,
   Trash2,
   MailCheck,
   MailX,
@@ -60,7 +59,6 @@ interface RegistrationsTableProps {
 export function RegistrationsTable({
   registrations,
   referrers,
-  dates,
 }: RegistrationsTableProps) {
   const [regsState, setRegsState] = useState(registrations)
   const prevRegs = useRef(registrations)
@@ -109,10 +107,6 @@ export function RegistrationsTable({
     }
   }
 
-  const getDateLabel = (value: string) => {
-    return dates.find((d) => d.value === value)?.label || value
-  }
-
   const columns: ColumnDef<Registration>[] = [
     {
       id: "name",
@@ -156,7 +150,10 @@ export function RegistrationsTable({
       meta: "Orientation Date",
       cell: ({ row }) => (
         <span className="rounded-md bg-muted px-2 py-0.5 text-xs font-medium">
-          {getDateLabel(row.original.orientation_date)}
+          {format(
+            new Date(row.original.orientation_date),
+            "MMM d, yyyy (EE, h:mm aa)"
+          )}
         </span>
       ),
     },

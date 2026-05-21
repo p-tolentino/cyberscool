@@ -15,7 +15,7 @@ interface AdminPanelProps {
   registrations: Registration[]
   referrers: Referrer[]
   stats: {
-    thisMonthSignups: number
+    thisMonthEnrollments: number
     activeDates: number
     pendingEmails: number
     pendingContact: number
@@ -33,7 +33,7 @@ export default function AdminPanel({
       <AdminHeader />
       <main className="mx-auto max-w-7xl space-y-6 p-4 sm:p-6 lg:p-8">
         <StatsCards
-          thisMonthSignups={stats.thisMonthSignups}
+          thisMonthEnrollments={stats.thisMonthEnrollments}
           activeDates={stats.activeDates}
           pendingEmails={stats.pendingEmails}
           pendingContact={stats.pendingContact}

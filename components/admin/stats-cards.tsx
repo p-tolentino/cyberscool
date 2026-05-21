@@ -2,7 +2,6 @@
 
 import { Card, CardContent } from "@/components/ui/card"
 import {
-  Users,
   UserX,
   CalendarCheck,
   CalendarX,
@@ -10,24 +9,25 @@ import {
   MailQuestion,
   Phone,
   PhoneCall,
+  GraduationCap,
 } from "lucide-react"
 
 interface StatsCardsProps {
-  thisMonthSignups: number
+  thisMonthEnrollments: number
   activeDates: number
   pendingEmails: number
   pendingContact: number
 }
 
 export function StatsCards({
-  thisMonthSignups,
+  thisMonthEnrollments,
   activeDates,
   pendingEmails,
   pendingContact,
 }: StatsCardsProps) {
-  const signupsIcon = thisMonthSignups > 0 ? Users : UserX
+  const signupsIcon = thisMonthEnrollments > 0 ? GraduationCap : UserX
   const signupsColor =
-    thisMonthSignups > 0
+    thisMonthEnrollments > 0
       ? "bg-brand-purple/10 text-brand-purple dark:bg-purple-950/30 dark:text-purple-400"
       : "bg-muted text-muted-foreground"
 
@@ -51,8 +51,8 @@ export function StatsCards({
 
   const stats = [
     {
-      label: "This Month's Signups",
-      value: thisMonthSignups,
+      label: "This Month's Enrollments",
+      value: thisMonthEnrollments,
       icon: signupsIcon,
       color: signupsColor,
     },

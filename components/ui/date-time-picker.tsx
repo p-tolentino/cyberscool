@@ -51,6 +51,8 @@ export function DateTimePicker({
     ? `${String(value.getHours()).padStart(2, "0")}:${String(value.getMinutes()).padStart(2, "0")}`
     : ""
 
+  const isPastDate = (date: Date) => date < new Date()
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -70,22 +72,29 @@ export function DateTimePicker({
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0" align="start">
+      <PopoverContent
+        className="max-h-[70vh] w-auto overflow-auto p-1.5"
+        align="start"
+        side="bottom"
+      >
         <Calendar
           mode="single"
           selected={value}
           onSelect={handleDateSelect}
-          initialFocus
+          disabled={isPastDate}
+          className="w-full"
         />
         <div className="flex items-center gap-2 border-t p-3">
-          <Clock className="size-4 text-muted-foreground shrink-0" />
-          <Label htmlFor="time-input" className="sr-only">Time</Label>
+          <Clock className="size-4 shrink-0 text-muted-foreground" />
+          <Label htmlFor="time-input" className="sr-only">
+            Time
+          </Label>
           <Input
             id="time-input"
             type="time"
             value={timeValue}
             onChange={handleTimeChange}
-            className="w-full"
+            className="flex min-w-auto justify-evenly"
           />
         </div>
       </PopoverContent>
