@@ -70,13 +70,13 @@ function ComboboxInput({
       />
       <InputGroupAddon align="inline-end">
         {showTrigger && (
-          <InputGroupButton
-            size="icon-xs"
-            variant="ghost"
-            render={<ComboboxTrigger />}
-            data-slot="input-group-button"
-            className="group-has-data-[slot=combobox-clear]/input-group:hidden data-pressed:bg-transparent"
+          <ComboboxTrigger
             disabled={disabled}
+            className={cn(
+              // Classes that mimic InputGroupButton variant="ghost" size="icon-xs"
+              "inline-flex size-8 shrink-0 cursor-pointer items-center justify-center gap-2 rounded-md rounded-l-none rounded-r-md border border-input bg-transparent text-sm font-medium whitespace-nowrap text-foreground shadow-xs transition-all outline-none hover:bg-accent hover:text-accent-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+              "group-has-data-[slot=combobox-clear]/input-group:hidden data-pressed:bg-transparent"
+            )}
           />
         )}
         {showClear && <ComboboxClear disabled={disabled} />}
