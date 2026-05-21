@@ -108,7 +108,11 @@ export function OrientationDatesTable({ dates }: OrientationDatesTableProps) {
       header: "Scheduled Date & Time",
       meta: "Scheduled Date & Time",
       enableSorting: true,
-      cell: ({ row }) => <span className="text-sm">{row.original.label}</span>,
+      cell: ({ row }) => (
+        <span className="text-sm">
+          {format(new Date(row.original.value), "MMM d, yyyy (EE, h:mm aa)")}
+        </span>
+      ),
     },
     {
       accessorKey: "is_active",
@@ -155,11 +159,7 @@ export function OrientationDatesTable({ dates }: OrientationDatesTableProps) {
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="size-8 opacity-0 transition-opacity group-hover:opacity-100"
-              >
+              <Button variant="ghost" size="icon" className="size-8">
                 <MoreHorizontal className="size-4" />
               </Button>
             </DropdownMenuTrigger>
@@ -190,8 +190,8 @@ export function OrientationDatesTable({ dates }: OrientationDatesTableProps) {
                       Delete Orientation Date?
                     </AlertDialogTitle>
                     <AlertDialogDescription>
-                      Are you sure you want to delete "{date.label}"? This
-                      action cannot be undone.
+                      Are you sure you want to delete &quot;{date.label}&quot;?
+                      This action cannot be undone.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
@@ -224,7 +224,13 @@ export function OrientationDatesTable({ dates }: OrientationDatesTableProps) {
         </div>
         <CreateDateDialog />
       </div>
-      <DataTable columns={columns} data={datesState} pageSize={5} />
+
+      <DataTable
+        columns={columns}
+        data={datesState}
+        pageSize={5}
+        pinnedColumns={{ left: ["label"] }}
+      />
     </div>
   )
 }

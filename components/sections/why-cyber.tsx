@@ -101,13 +101,8 @@ const cyberRoles = [
   },
 
   {
-    range: "$13,000 - $16,000",
-    job: "Security Analyst / Cybersecurity Analyst",
-    description: "Philippines",
-  },
-  {
-    range: "$8,000 -   $16,000",
-    job: "SOC Analyst Tier 1",
+    range: "₱780,000 - ₱960,000",
+    job: "Threat Intelligence Analyst",
     description: "Philippines",
   },
 ]
@@ -146,7 +141,7 @@ export default function WhyCyber() {
 
   return (
     <section
-      className="relative w-full overflow-hidden py-20 md:py-32"
+      className="relative w-full overflow-hidden py-16 md:py-24"
       id="why-cyber"
     >
       {/* Background pattern */}
@@ -246,7 +241,12 @@ export default function WhyCyber() {
               transition={{ duration: 0.6, ease: "easeOut" }}
               className="text-center text-2xl font-bold tracking-tight md:text-3xl"
             >
-              Cybersecurity Annual Salary Potential
+              Cybersecurity{" "}
+              <span className="text-brand-purple dark:text-primary">
+                {" "}
+                Annual
+              </span>{" "}
+              Salary Potential
             </motion.h2>
             <motion.p
               initial={{ opacity: 0, y: 20 }}

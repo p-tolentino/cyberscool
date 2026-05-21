@@ -6,6 +6,19 @@ import { ChevronDown } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 
+import {
+  VideoPlayer,
+  VideoPlayerContent,
+  VideoPlayerControlBar,
+  VideoPlayerMuteButton,
+  VideoPlayerPlayButton,
+  VideoPlayerSeekBackwardButton,
+  VideoPlayerSeekForwardButton,
+  VideoPlayerTimeDisplay,
+  VideoPlayerTimeRange,
+  VideoPlayerVolumeRange,
+} from "@/components/kibo-ui/video-player"
+
 interface FAQItemProps {
   question: string
   answer: string
@@ -46,7 +59,7 @@ const faqs: Omit<FAQItemProps, "index">[] = [
   {
     question: "What beginner-friendly roles can I aim for?",
     answer:
-      "Depending on your background and training, possible entry points may include SOC Analyst Tier 1, Cybersecurity Associate, IT Auditor, GRC Associate, Cybersecurity Operations Technician, Incident Response Assistant, or Threat Intelligence Analyst.",
+      "Depending on your background and training, possible entry points may include Cybersecurity Intern, Cybersecurity Associate, Cybersecurity Analyst, Cybersecurity Operations Technician, SOC Analyes Tier 1.",
   },
   {
     question: "Will salary ranges be discussed?",
@@ -171,6 +184,35 @@ function FAQItem({ question, answer, index }: FAQItemProps) {
               >
                 {answer}
               </motion.p>
+              {(question === "Who is CybersCool Defcon?" ||
+                question ===
+                  "Will there be a training offer during the preview?") && (
+                <VideoPlayer className="overflow-hidden rounded-lg border">
+                  <VideoPlayerContent
+                    crossOrigin=""
+                    muted
+                    preload="auto"
+                    slot="media"
+                    src={
+                      question === "Who is CybersCool Defcon?"
+                        ? "/zero-to-hero.mp4"
+                        : question ===
+                            "Will there be a training offer during the preview?"
+                          ? "/techdx-demo.mp4"
+                          : ""
+                    }
+                  />
+                  <VideoPlayerControlBar>
+                    <VideoPlayerPlayButton />
+                    <VideoPlayerMuteButton />
+                    <VideoPlayerVolumeRange />
+                    <VideoPlayerTimeDisplay showDuration />
+                    <VideoPlayerTimeRange />
+                    <VideoPlayerSeekBackwardButton />
+                    <VideoPlayerSeekForwardButton />
+                  </VideoPlayerControlBar>
+                </VideoPlayer>
+              )}
             </div>
           </motion.div>
         )}

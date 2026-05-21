@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { cn } from "@/lib/utils"
 import Image from "next/image"
@@ -24,7 +24,7 @@ const features = [
     content:
       "How much cyber professionals can earn locally and internationally",
     icon: <DollarSign className="h-6 w-6 text-primary" />,
-    image: "/preview/salary.jpg",
+    image: "/preview/worth.png",
   },
   {
     title: "Find Your Entry Point",
@@ -51,22 +51,61 @@ const features = [
 export default function SessionPreview() {
   const [currentFeature, setCurrentFeature] = useState(0)
   const [progress, setProgress] = useState(0)
+  const [isAutoPlaying, setIsAutoPlaying] = useState(true)
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const intervalRef = useRef<NodeJS.Timeout | null>(null)
 
+  // Auto-cycle timer (8 seconds per item)
   useEffect(() => {
-    const timer = setInterval(() => {
-      if (progress < 100) {
-        setProgress((prev) => prev + 100 / (4000 / 100))
-      } else {
+    if (!isAutoPlaying) return
+
+    const cycleDuration = 8000 // 8 seconds - longer for reading
+
+    const startTimer = () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current)
+      if (intervalRef.current) clearInterval(intervalRef.current)
+
+      setProgress(0)
+
+      // Progress bar increment every 80ms (100 steps over 8 seconds)
+      intervalRef.current = setInterval(() => {
+        setProgress((prev) => {
+          if (prev >= 100) return prev
+          return prev + 100 / (cycleDuration / 80)
+        })
+      }, 80)
+
+      timeoutRef.current = setTimeout(() => {
         setCurrentFeature((prev) => (prev + 1) % features.length)
         setProgress(0)
-      }
-    }, 100)
+      }, cycleDuration)
+    }
 
-    return () => clearInterval(timer)
-  }, [progress])
+    startTimer()
+
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current)
+      if (intervalRef.current) clearInterval(intervalRef.current)
+    }
+  }, [currentFeature, isAutoPlaying])
+
+  const handleFeatureClick = (index: number) => {
+    if (index === currentFeature) return
+    setIsAutoPlaying(false)
+    setCurrentFeature(index)
+    setProgress(0)
+
+    // Resume auto-play after 15 seconds of inactivity
+    if (timeoutRef.current) clearTimeout(timeoutRef.current)
+    const resumeTimeout = setTimeout(() => {
+      setIsAutoPlaying(true)
+    }, 15000)
+
+    timeoutRef.current = resumeTimeout
+  }
 
   return (
-    <div className="px-8 py-20 md:px-12" id="preview">
+    <div className="px-8 py-16 md:py-24" id="preview">
       <div className="mx-auto w-full max-w-7xl">
         <div className="relative mx-auto mb-12 max-w-5xl sm:text-center">
           <div className="relative z-10">
@@ -94,21 +133,22 @@ export default function SessionPreview() {
             {features.map((feature, index) => (
               <motion.div
                 key={index}
-                className="flex items-center gap-6 md:gap-8"
+                className="flex cursor-pointer items-center gap-6 md:gap-8"
                 initial={{ opacity: 0.3, x: -20 }}
                 animate={{
-                  opacity: index === currentFeature ? 1 : 0.3,
+                  opacity: index === currentFeature ? 1 : 0.5,
                   x: 0,
-                  scale: index === currentFeature ? 1.05 : 1,
+                  scale: index === currentFeature ? 1.02 : 1,
                 }}
-                transition={{ duration: 0.5 }}
+                transition={{ duration: 0.3 }}
+                onClick={() => handleFeatureClick(index)}
               >
                 <motion.div
                   className={cn(
-                    "flex h-12 w-12 items-center justify-center rounded-full border-2 md:h-14 md:w-14",
+                    "flex h-12 w-12 items-center justify-center rounded-full border-2 transition-all md:h-14 md:w-14",
                     index === currentFeature
                       ? "scale-110 border-primary bg-primary/10 text-primary [box-shadow:0_0_15px_rgba(192,15,102,0.3)]"
-                      : "border-muted-foreground bg-muted"
+                      : "border-muted-foreground bg-muted hover:border-primary/50 hover:bg-primary/5"
                   )}
                 >
                   {feature.icon}
@@ -128,9 +168,21 @@ export default function SessionPreview() {
 
           <div
             className={cn(
-              "relative order-1 h-50 overflow-hidden rounded-xl border border-primary/20 [box-shadow:0_5px_30px_-15px_rgba(192,15,102,0.3)] md:order-2 md:h-75 lg:h-100"
+              "relative order-1 overflow-hidden rounded-xl border border-primary/20 [box-shadow:0_5px_30px_-15px_rgba(192,15,102,0.3)] md:order-2",
+              "h-50 md:h-75 lg:h-100"
             )}
           >
+            {/* Progress bar indicator */}
+            {isAutoPlaying && (
+              <div className="absolute top-0 right-0 left-0 z-10 h-1 bg-primary/20 transition-all">
+                <motion.div
+                  className="h-full bg-primary"
+                  initial={{ width: "0%" }}
+                  animate={{ width: `${progress}%` }}
+                  transition={{ duration: 0.08, ease: "linear" }}
+                />
+              </div>
+            )}
             <AnimatePresence mode="wait">
               {features.map(
                 (feature, index) =>

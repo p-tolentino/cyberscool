@@ -384,48 +384,69 @@ const testimonials = [
     delay: 0.12,
   },
   {
-    name: "Angela Marie M. de Gracia-Cruz",
-    role: "Court Attorney VI, Supreme Court of the Philippines",
+    name: "Jose Angel Mulawin D. Laya",
+    role: "Private Citizen, Smart Petro Inc.",
     description: (
       <p>
-        &quot;{" "}
+        &quot; Before joining Zero to Hero, I was self-taught but overwhelmed.
+        The hands-on labs made complex topics clear, and the instructors
+        explained not just how to do things but why they matter.{" "}
         <Highlight>
-          As someone with no IT or computer engineering background
-        </Highlight>
-        , I appreciated the practical applications and real-world examples
-        integrated into the course. They made the concepts easier to understand
-        and showed how cybersecurity applies to my professional field. &quot;
+          CybersCool filled in the gaps and gave me the confidence to strive in
+          cybersecurity.
+        </Highlight>{" "}
+        &quot;
       </p>
     ),
     delay: 0.45,
   },
   {
-    name: "Joyce C. Vacual",
-    role: "Information Systems Analyst II, Supreme Court of the Philippines",
+    name: "John Mark J. Alfonso",
+    role: "Philippine Army",
     description: (
       <p>
-        &quot; The real-world scenarios and practical exercises in the course
-        <Highlight>
-          strengthened my understanding of security operations and familiarized
-          me with essential tools
-        </Highlight>{" "}
-        for effective threat response. &quot;
+        &quot; As a beginner, the Zero to Hero bootcamp{" "}
+        <Highlight>transformed my confusion into confidence</Highlight>. The
+        hands-on labs and simulated exercises were engaging, and the expert
+        instructors guided us through cyber defense, forensics, and network
+        operations. <Highlight>I highly recommend this bootcamp.</Highlight>
+        &quot;
       </p>
     ),
     delay: 0.67,
   },
   {
-    name: "Anonymous",
-    role: "Government Employee",
+    name: "Eric M. Carreon",
+    role: "Philippine Air Force",
     description: (
       <p>
-        &quot; I was hesitant at first to take an online course, but{" "}
-        <Highlight>it proved to be the right choice</Highlight>. The flexible
-        format, structured material, and instructor support helped me learn new
-        skills and advance my career. &quot;
+        &quot;{" "}
+        <Highlight>The cybersecurity bootcamp really stands true</Highlight> and
+        gave me a strong foundation in cybersecurity. The projects and labs were
+        <Highlight>invaluable</Highlight>, allowing me to apply what I learned
+        in practical scenarios. Thank you, CybersCool, for an incredible and
+        transformative experience. &quot;
       </p>
     ),
     delay: 0.23,
+  },
+  {
+    name: "Roderic V. Ilagan",
+    role: "COMELEC",
+    description: (
+      <p>
+        &quot; <Highlight>I am thrilled to share my experience</Highlight> in
+        the bootcamp that significantly impacted my journey to cybersecurity.
+        The mentorship, real-world labs, and simulations provided hands-on
+        experience with the latest tools.{" "}
+        <Highlight>
+          This laid a solid foundation for my career: now, I head a
+          Cybersecurity Division.
+        </Highlight>{" "}
+        Mabuhay Alpha 7100! &quot;
+      </p>
+    ),
+    delay: 0.35,
   },
 ]
 
@@ -450,7 +471,7 @@ const highlightedTestimonial = {
 export default function Testimonials() {
   return (
     <section
-      className="relative mx-auto overflow-hidden py-20 md:py-32"
+      className="relative mx-auto overflow-hidden py-16 md:py-24"
       id="testimonials"
     >
       {/* Decorative elements */}

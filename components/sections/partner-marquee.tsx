@@ -57,7 +57,7 @@ export function PartnerMarquee() {
   const secondHalf = partners.slice(Math.ceil(partners.length / 2))
 
   return (
-    <section id="partners" className="py-20">
+    <section id="partners" className="py-16 md:py-24">
       <div className="container mx-auto mb-8 px-4">
         <h2 className="text-center text-3xl font-bold tracking-tighter md:text-4xl">
           Trusted by <span className="text-primary">Leading Organizations</span>

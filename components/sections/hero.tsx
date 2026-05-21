@@ -1,27 +1,10 @@
 "use client"
 
 import { Badge } from "@/components/ui/badge"
-import {
-  ArrowRight,
-  BookOpenCheck,
-  GraduationCap,
-  ShieldCheck,
-} from "lucide-react"
+import { ArrowRight, ShieldCheck } from "lucide-react"
 import { ShuffleText } from "../ui/shuffle-text"
 import { FlickeringGrid } from "../ui/flickering-grid"
 import { ShimmerButton } from "@/components/ui/shimmer-button"
-import {
-  VideoPlayer,
-  VideoPlayerContent,
-  VideoPlayerControlBar,
-  VideoPlayerMuteButton,
-  VideoPlayerPlayButton,
-  VideoPlayerSeekBackwardButton,
-  VideoPlayerSeekForwardButton,
-  VideoPlayerTimeDisplay,
-  VideoPlayerTimeRange,
-  VideoPlayerVolumeRange,
-} from "@/components/kibo-ui/video-player"
 import { motion } from "framer-motion"
 
 export function Hero() {
@@ -147,7 +130,7 @@ export function Hero() {
                 muted
                 preload="auto"
                 slot="media"
-                src="https://stream.mux.com/DS00Spx1CV902MCtPj5WknGlR102V5HFkDe/high.mp4"
+                src="/zero-to-hero.mp4"
               />
               <VideoPlayerControlBar>
                 <VideoPlayerPlayButton />

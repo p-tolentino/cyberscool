@@ -4,11 +4,16 @@ import { AdminHeader } from "@/components/admin/admin-header"
 import { StatsCards } from "@/components/admin/stats-cards"
 import { OrientationDatesTable } from "@/components/admin/orientation-dates-table"
 import { RegistrationsTable } from "@/components/admin/registrations-table"
-import type { OrientationDate, Registration } from "@/lib/supabase/types"
+import type {
+  OrientationDate,
+  Referrer,
+  Registration,
+} from "@/lib/supabase/types"
 
 interface AdminPanelProps {
   dates: OrientationDate[]
   registrations: Registration[]
+  referrers: Referrer[]
   stats: {
     thisMonthSignups: number
     activeDates: number
@@ -20,6 +25,7 @@ interface AdminPanelProps {
 export default function AdminPanel({
   dates,
   registrations,
+  referrers,
   stats,
 }: AdminPanelProps) {
   return (
@@ -33,7 +39,11 @@ export default function AdminPanel({
           pendingContact={stats.pendingContact}
         />
         <OrientationDatesTable dates={dates} />
-        <RegistrationsTable registrations={registrations} dates={dates} />
+        <RegistrationsTable
+          registrations={registrations}
+          dates={dates}
+          referrers={referrers}
+        />
       </main>
     </div>
   )

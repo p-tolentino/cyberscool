@@ -3,6 +3,7 @@
 import { Card, CardContent } from "@/components/ui/card"
 import {
   Users,
+  UserX,
   CalendarCheck,
   CalendarX,
   MailCheck,
@@ -24,6 +25,12 @@ export function StatsCards({
   pendingEmails,
   pendingContact,
 }: StatsCardsProps) {
+  const signupsIcon = thisMonthSignups > 0 ? Users : UserX
+  const signupsColor =
+    thisMonthSignups > 0
+      ? "bg-brand-purple/10 text-brand-purple dark:bg-purple-950/30 dark:text-purple-400"
+      : "bg-muted text-muted-foreground"
+
   const activeIcon = activeDates > 0 ? CalendarCheck : CalendarX
   const activeColor =
     activeDates > 0
@@ -46,9 +53,8 @@ export function StatsCards({
     {
       label: "This Month's Signups",
       value: thisMonthSignups,
-      icon: Users,
-      color:
-        "bg-brand-purple/10 text-brand-purple dark:bg-purple-950/30 dark:text-purple-400",
+      icon: signupsIcon,
+      color: signupsColor,
     },
     {
       label: "Active Dates",
@@ -71,7 +77,7 @@ export function StatsCards({
   ]
 
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid grid-cols-1 gap-2 sm:gap-3 lg:grid-cols-4">
       {stats.map((stat) => {
         const Icon = stat.icon
         return (
@@ -79,18 +85,20 @@ export function StatsCards({
             key={stat.label}
             className="shadow-sm transition-shadow hover:shadow-md"
           >
-            <CardContent className="py-2.5 px-4 sm:p-5">
-              <div className="flex items-center justify-between">
-                <div className="space-y-1">
-                  <p className="text-xs sm:text-sm text-muted-foreground">{stat.label}</p>
-                  <p className="font-heading text-xl sm:text-2xl font-bold">
+            <CardContent className="px-3 sm:px-4">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <p className="min-w-6 text-center font-heading text-base font-bold sm:min-w-12 sm:text-xl">
                     {stat.value.toLocaleString()}
+                  </p>
+                  <p className="text-xs font-medium text-muted-foreground sm:text-sm">
+                    {stat.label}
                   </p>
                 </div>
                 <div
-                  className={`flex size-8 sm:size-10 items-center justify-center rounded-lg ${stat.color}`}
+                  className={`flex size-8 items-center justify-center rounded-lg ${stat.color}`}
                 >
-                  <Icon className="size-4 sm:size-5" />
+                  <Icon className="size-4" />
                 </div>
               </div>
             </CardContent>

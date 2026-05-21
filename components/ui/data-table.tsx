@@ -4,6 +4,7 @@ import * as React from "react"
 import {
   ColumnDef,
   ColumnFiltersState,
+  ColumnPinningState,
   SortingState,
   VisibilityState,
   flexRender,
@@ -31,6 +32,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { ChevronDown, ChevronLeft, ChevronRight, Search } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -38,6 +40,7 @@ interface DataTableProps<TData, TValue> {
   searchKey?: string
   searchPlaceholder?: string
   pageSize?: number
+  pinnedColumns?: ColumnPinningState
 }
 
 export function DataTable<TData, TValue>({
@@ -46,6 +49,7 @@ export function DataTable<TData, TValue>({
   searchKey,
   searchPlaceholder = "Search...",
   pageSize = 10,
+  pinnedColumns,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -71,6 +75,7 @@ export function DataTable<TData, TValue>({
     },
     initialState: {
       pagination: { pageSize },
+      columnPinning: pinnedColumns ?? {},
     },
   })
 
@@ -78,7 +83,7 @@ export function DataTable<TData, TValue>({
     <div>
       <div className="flex items-center gap-4 py-4">
         {searchKey && (
-          <div className="relative max-w-sm flex-1">
+          <div className="relative min-w-[40%] flex-1">
             <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder={searchPlaceholder}
@@ -122,14 +127,21 @@ export function DataTable<TData, TValue>({
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      <div className="rounded-xl border bg-card shadow-sm">
+      <div className="overflow-x-auto rounded-xl border bg-card shadow-sm">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id} className="bg-muted/30">
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead key={header.id} className="first:pl-8 last:pr-8">
+                    <TableHead
+                      key={header.id}
+                      className={cn(
+                        "first:pl-2 last:pr-2",
+                        header.column.getIsPinned() &&
+                          "sticky left-0 z-10 bg-card"
+                      )}
+                    >
                       {header.isPlaceholder
                         ? null
                         : flexRender(
@@ -151,7 +163,14 @@ export function DataTable<TData, TValue>({
                   className="group transition-colors hover:bg-brand-purple/5"
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className="first:pl-8 last:pr-8">
+                    <TableCell
+                      key={cell.id}
+                      className={cn(
+                        "first:pl-2 last:pr-2",
+                        cell.column.getIsPinned() &&
+                          "sticky left-0 z-10 bg-card"
+                      )}
+                    >
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()

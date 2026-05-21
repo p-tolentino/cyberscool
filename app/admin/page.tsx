@@ -4,6 +4,7 @@ import {
   getOrientationDates,
   getProspects,
   checkAdminSession,
+  getReferrers,
 } from "../actions/admin"
 
 export async function generateMetadata() {
@@ -21,8 +22,11 @@ export default async function AdminPage() {
     return <AdminLogin />
   }
 
-  const dates = await getOrientationDates()
-  const registrations = await getProspects()
+  const [dates, registrations, referrers] = await Promise.all([
+    getOrientationDates(),
+    getProspects(),
+    getReferrers(), // Fetch all referrers once
+  ])
   const safeDates = dates || []
   const safeRegs = registrations || []
 
@@ -41,6 +45,7 @@ export default async function AdminPage() {
     <AdminPanel
       dates={safeDates}
       registrations={safeRegs}
+      referrers={referrers}
       stats={stats}
     />
   )

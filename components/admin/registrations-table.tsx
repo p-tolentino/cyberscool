@@ -28,7 +28,11 @@ import {
   toggleContacted,
   deleteRegistration,
 } from "@/app/actions/admin"
-import type { Registration, OrientationDate } from "@/lib/supabase/types"
+import type {
+  Registration,
+  OrientationDate,
+  Referrer,
+} from "@/lib/supabase/types"
 import {
   MoreHorizontal,
   Phone,
@@ -37,17 +41,25 @@ import {
   MailCheck,
   MailX,
   PhoneCall,
+  UserCheck,
+  GraduationCap,
+  UserPlus,
 } from "lucide-react"
 import { toast } from "sonner"
 import { format } from "date-fns"
 
+import { AssignReferrerDialog } from "@/components/admin/assign-referrer-dialog"
+import { EnrollDialog } from "@/components/admin/enroll-dialog"
+
 interface RegistrationsTableProps {
   registrations: Registration[]
   dates: OrientationDate[]
+  referrers: Referrer[]
 }
 
 export function RegistrationsTable({
   registrations,
+  referrers,
   dates,
 }: RegistrationsTableProps) {
   const [regsState, setRegsState] = useState(registrations)
@@ -122,7 +134,7 @@ export function RegistrationsTable({
       cell: ({ row }) => (
         <a
           href={`mailto:${row.original.email}`}
-          className="text-brand-teal hover:underline text-sm"
+          className="text-sm text-brand-teal hover:underline"
         >
           {row.original.email}
         </a>
@@ -143,7 +155,7 @@ export function RegistrationsTable({
       header: "Orientation Date",
       meta: "Orientation Date",
       cell: ({ row }) => (
-        <span className="text-xs font-medium px-2 py-0.5 rounded-md bg-muted">
+        <span className="rounded-md bg-muted px-2 py-0.5 text-xs font-medium">
           {getDateLabel(row.original.orientation_date)}
         </span>
       ),
@@ -207,12 +219,61 @@ export function RegistrationsTable({
           return <span className="text-xs text-muted-foreground">—</span>
         }
         return (
-          <span className="text-xs text-muted-foreground whitespace-nowrap">
+          <span className="text-xs whitespace-nowrap text-muted-foreground">
             {format(d, "MMM d, yyyy")}
             <span className="ml-1 text-muted-foreground/60">
               ({format(d, "h:mm a")})
             </span>
           </span>
+        )
+      },
+    },
+    {
+      accessorKey: "is_enrolled",
+      header: "Enrolled",
+      meta: "Enrolled",
+      cell: ({ row }) => {
+        const isEnrolled = row.original.is_enrolled
+        return (
+          <div className="flex justify-center">
+            <EnrollDialog
+              registration={row.original}
+              onEnroll={() => {
+                setRegsState((prev) =>
+                  prev.map((r) =>
+                    r.id === row.original.id
+                      ? {
+                          ...r,
+                          is_enrolled: !r.is_enrolled,
+                          enrolled_at: !r.is_enrolled
+                            ? new Date().toISOString()
+                            : null,
+                        }
+                      : r
+                  )
+                )
+              }}
+            >
+              <Button variant="ghost" size="sm" className="size-8 p-0">
+                {isEnrolled ? (
+                  <GraduationCap className="size-4 text-green-600" />
+                ) : (
+                  <UserCheck className="size-4 text-muted-foreground" />
+                )}
+              </Button>
+            </EnrollDialog>
+          </div>
+        )
+      },
+    },
+    {
+      accessorKey: "referrer",
+      header: "Referrer",
+      meta: "Referrer",
+      cell: ({ row }) => {
+        const referrerName = row.original.referrer?.name || "—"
+        return (
+          <span className="text-xs text-muted-foreground">{referrerName}</span>
         )
       },
     },
@@ -224,46 +285,46 @@ export function RegistrationsTable({
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="size-8 opacity-0 group-hover:opacity-100 transition-opacity"
-              >
+              <Button variant="ghost" size="icon" className="size-8">
                 <MoreHorizontal className="size-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-44">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() => handleToggleEmail(reg)}
-              >
+              <DropdownMenuItem onClick={() => handleToggleEmail(reg)}>
                 {reg.email_sent ? (
-                  <MailX className="size-4 mr-2" />
+                  <MailX className="mr-2 size-4" />
                 ) : (
-                  <MailCheck className="size-4 mr-2" />
+                  <MailCheck className="mr-2 size-4" />
                 )}
                 {reg.email_sent ? "Mark Not Sent" : "Mark Email Sent"}
               </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => handleToggleContact(reg)}
-              >
+              <DropdownMenuItem onClick={() => handleToggleContact(reg)}>
                 {reg.contacted ? (
-                  <Phone className="size-4 mr-2" />
+                  <Phone className="mr-2 size-4" />
                 ) : (
-                  <PhoneCall className="size-4 mr-2" />
+                  <PhoneCall className="mr-2 size-4" />
                 )}
                 {reg.contacted ? "Mark Not Contacted" : "Mark Contacted"}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() =>
-                  window.open(`mailto:${reg.email}`, "_blank")
-                }
+              <AssignReferrerDialog
+                registration={reg}
+                referrers={referrers}
+                onAssign={(updatedRegistration) => {
+                  setRegsState((prev) =>
+                    prev.map((r) =>
+                      r.id === updatedRegistration.id ? updatedRegistration : r
+                    )
+                  )
+                }}
               >
-                <Eye className="size-4 mr-2" />
-                Open in Mail
-              </DropdownMenuItem>
+                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                  <UserPlus className="mr-2 size-4" />
+                  Assign Referrer
+                </DropdownMenuItem>
+              </AssignReferrerDialog>
               <DropdownMenuSeparator />
               <AlertDialog>
                 <AlertDialogTrigger asChild>
@@ -271,7 +332,7 @@ export function RegistrationsTable({
                     variant="destructive"
                     onSelect={(e) => e.preventDefault()}
                   >
-                    <Trash2 className="size-4 mr-2" />
+                    <Trash2 className="mr-2 size-4" />
                     Delete
                   </DropdownMenuItem>
                 </AlertDialogTrigger>
@@ -314,8 +375,9 @@ export function RegistrationsTable({
         columns={columns}
         data={regsState}
         searchKey="email"
-        searchPlaceholder="Search by name or email..."
+        searchPlaceholder="Search..."
         pageSize={10}
+        pinnedColumns={{ left: ["name"] }}
       />
     </div>
   )

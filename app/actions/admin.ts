@@ -67,7 +67,12 @@ export async function getProspects() {
   const supabase = await createClient()
   const { data: registrations } = await supabase
     .from("orientation_registrations")
-    .select("*")
+    .select(
+      `
+      *,
+      referrer:referrer_id (*)
+    `
+    )
     .order("created_at", { ascending: false })
   return registrations
 }
@@ -170,6 +175,96 @@ export async function updateOrientationDate(formData: FormData) {
     .from("orientation_dates")
     .update({ label, value })
     .eq("id", dateId)
+
+  if (error) return { success: false, error: error.message }
+  revalidatePath("/admin")
+  return { success: true, error: "" }
+}
+
+export async function getReferrers(searchTerm?: string) {
+  const supabase = await createClient()
+  let query = supabase.from("referrers").select("*").order("name")
+
+  if (searchTerm && searchTerm.trim()) {
+    query = query.ilike("name", `%${searchTerm}%`)
+  }
+
+  const { data } = await query.limit(20)
+  return data || []
+}
+
+export async function createReferrer(name: string) {
+  const unauth = await requireAdmin()
+  if (unauth) return unauth
+
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from("referrers")
+    .insert({ name: name.trim() })
+    .select()
+    .single()
+
+  if (error) {
+    if (error.code === "23505") {
+      const { data: existing } = await supabase
+        .from("referrers")
+        .select("*")
+        .eq("name", name.trim())
+        .single()
+      return { success: true, data: existing, error: "" }
+    }
+    return { success: false, error: error.message }
+  }
+
+  revalidatePath("/admin")
+  return { success: true, data, error: "" }
+}
+
+export async function assignReferrer(
+  registrationId: string,
+  referrerId: string | null
+) {
+  const unauth = await requireAdmin()
+  if (unauth) return unauth
+
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from("orientation_registrations")
+    .update({ referrer_id: referrerId })
+    .eq("id", registrationId)
+
+  if (error) return { success: false, error: error.message }
+  revalidatePath("/admin")
+  return { success: true, error: "" }
+}
+
+export async function toggleEnrolled(
+  registrationId: string,
+  currentStatus: boolean,
+  enrolledDate?: Date | null
+) {
+  const unauth = await requireAdmin()
+  if (unauth) return unauth
+
+  const supabase = await createClient()
+
+  const updateData: {
+    is_enrolled: boolean
+    enrolled_at?: string | null
+  } = {
+    is_enrolled: !currentStatus,
+  }
+
+  if (!currentStatus && enrolledDate) {
+    updateData.enrolled_at = enrolledDate.toISOString()
+  } else if (currentStatus) {
+    updateData.enrolled_at = null
+  }
+
+  const { error } = await supabase
+    .from("orientation_registrations")
+    .update(updateData)
+    .eq("id", registrationId)
 
   if (error) return { success: false, error: error.message }
   revalidatePath("/admin")
