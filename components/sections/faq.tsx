@@ -5,19 +5,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { ChevronDown } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
-
-import {
-  VideoPlayer,
-  VideoPlayerContent,
-  VideoPlayerControlBar,
-  VideoPlayerMuteButton,
-  VideoPlayerPlayButton,
-  VideoPlayerSeekBackwardButton,
-  VideoPlayerSeekForwardButton,
-  VideoPlayerTimeDisplay,
-  VideoPlayerTimeRange,
-  VideoPlayerVolumeRange,
-} from "@/components/kibo-ui/video-player"
+import { VideoPlayer } from "../shadix-ui/components/video-player/video-player"
 
 interface FAQItemProps {
   question: string
@@ -187,31 +175,15 @@ function FAQItem({ question, answer, index }: FAQItemProps) {
               {(question === "Who is CybersCool Defcon?" ||
                 question ===
                   "Will there be a training offer during the preview?") && (
-                <VideoPlayer className="overflow-hidden rounded-lg border">
-                  <VideoPlayerContent
-                    crossOrigin=""
-                    muted
-                    preload="auto"
-                    slot="media"
+                <div className="video-player-wrapper mt-4 overflow-hidden rounded-lg border">
+                  <VideoPlayer
                     src={
                       question === "Who is CybersCool Defcon?"
                         ? "/zero-to-hero.mp4"
-                        : question ===
-                            "Will there be a training offer during the preview?"
-                          ? "/techdx-demo.mp4"
-                          : ""
+                        : "/techdx-demo.mp4"
                     }
                   />
-                  <VideoPlayerControlBar>
-                    <VideoPlayerPlayButton />
-                    <VideoPlayerMuteButton />
-                    <VideoPlayerVolumeRange />
-                    <VideoPlayerTimeDisplay showDuration />
-                    <VideoPlayerTimeRange />
-                    <VideoPlayerSeekBackwardButton />
-                    <VideoPlayerSeekForwardButton />
-                  </VideoPlayerControlBar>
-                </VideoPlayer>
+                </div>
               )}
             </div>
           </motion.div>
