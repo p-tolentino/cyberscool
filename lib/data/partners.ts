@@ -68,11 +68,11 @@ export const partners: Partner[] = [
     logo: "/partner-logos/comelec.png",
     category: "government",
   },
-  {
-    name: "Provincial Government of Sultan Kudarat",
-    logo: "/partner-logos/sultankudarat.png",
-    category: "government",
-  },
+  // {
+  //   name: "Provincial Government of Sultan Kudarat",
+  //   logo: "/partner-logos/sultankudarat.png",
+  //   category: "government",
+  // },
   {
     name: "Science City of Muñoz",
     logo: "/partner-logos/sciencecity.png",
@@ -92,11 +92,11 @@ export const partners: Partner[] = [
     logoDark: "/partner-logos/deloitte-dark.png",
     category: "private",
   },
-  {
-    name: "Manuel L. Quezon University",
-    logo: "/partner-logos/mlqu.png",
-    category: "academic",
-  },
+  // {
+  //   name: "Manuel L. Quezon University",
+  //   logo: "/partner-logos/mlqu.png",
+  //   category: "academic",
+  // },
   {
     name: "IntelMaximum Surveillance Inc.",
     logo: "/partner-logos/ims.png",

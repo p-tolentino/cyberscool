@@ -90,7 +90,7 @@ const StatItem = ({
 
 const cyberRoles = [
   {
-    range: "$68,000 - $167,000",
+    range: "$67,000 - $163,000",
     job: "Security Analyst / Cybersecurity Analyst",
     description: "United States of America",
   },
@@ -99,10 +99,19 @@ const cyberRoles = [
     job: "SOC Analyst Tier 1",
     description: "United States of America",
   },
-
+  {
+    range: "£26,000 - £57,000",
+    job: "Cybersecurity Analyst",
+    description: "United Kingdom",
+  },
+  {
+    range: "₪30,000 - ₪501,000",
+    job: "Cybersecurity Analyst",
+    description: "Israel",
+  },
   {
     range: "₱780,000 - ₱960,000",
-    job: "Threat Intelligence Analyst",
+    job: "Cybersecurity Analyst",
     description: "Philippines",
   },
 ]
@@ -256,7 +265,7 @@ export default function WhyCyber() {
               transition={{ duration: 0.6, ease: "easeOut" }}
               className="text-center text-base leading-relaxed text-muted-foreground"
             >
-              Local and Global Opportunities
+              Global Earning Potential
             </motion.p>
           </div>
 
