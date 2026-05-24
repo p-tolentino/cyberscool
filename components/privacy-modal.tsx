@@ -99,15 +99,21 @@ export function PrivacyDialog({ open, onOpenChange }: PrivacyDialogProps) {
             CybersCool Defcon Inc.
             <br />
             <span>
-              Tel:{" "}
-              <a href="tel:+63279093880" className="text-brand-teal underline">
-                +63 2 7909 3880
+              Cel.:{" "}
+              <a href="tel:+639209476628" className="text-brand-teal underline">
+                (+63) 920 947 6628
+              </a>
+            </span>
+            <span>
+              Cel:{" "}
+              <a href="tel:+639989811628" className="text-brand-teal underline">
+                (+63) 998 981 1628
               </a>
             </span>
             <span>
               Tel:{" "}
-              <a href="tel:+63282499900" className="text-brand-teal underline">
-                +63 2 8249 9900
+              <a href="tel:+63279156464" className="text-brand-teal underline">
+                (+63) 2 7915 6464
               </a>
             </span>
           </p>

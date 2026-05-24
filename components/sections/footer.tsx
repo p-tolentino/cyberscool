@@ -23,8 +23,9 @@ const data = () => ({
     contact: [
       { name: "Leave a Message", href: "mailto:sales@cyberscooldefcon.com" },
       { name: "Reserve My Free Seat", href: "/#orientation-form" },
-      { name: "+63 2 7909 3880", href: "tel:+63279093880" },
-      { name: "+63 2 8249 9900", href: "tel:+63282499900" },
+      { name: "(+63) 920 947 6628", href: "tel:+639209476628" },
+      { name: "(+63) 998 981 1628", href: "tel:+639989811628" },
+      { name: "(+63) 2 7915 6464", href: "tel:+63279156464" },
     ],
     legal: [{ name: "Data Privacy", href: "/" }],
   },
