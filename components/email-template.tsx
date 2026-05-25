@@ -138,17 +138,19 @@ export function CybersCoolFonts() {
   )
 }
 
-const baseUrl = process.env.VERCEL_URL
-  ? `https://${process.env.VERCEL_URL}`
-  : "https://cyberscoolph.com"
+const baseUrl = process.env.NEXT_PUBLIC_URL
+  ? `https://${process.env.NEXT_PUBLIC_URL}`
+  : "https://cyberscool.vercel.app"
 
 interface JoinEmailProps {
+  firstName: string
   companyName: string
   zoomUrl: string
   orientationDateTime: string
 }
 
 export const JoinEmail = ({
+  firstName,
   companyName,
   zoomUrl,
   orientationDateTime,
@@ -159,7 +161,9 @@ export const JoinEmail = ({
         <CybersCoolFonts />
       </Head>
       <Body className="bg-grayLight m-0 text-center font-sans">
-        <Preview>Ready to Start Your Cybersecurity Journey?</Preview>
+        <Preview>
+          Hi, {firstName}! Ready to Start Your Cybersecurity Journey?
+        </Preview>
         <Container className="mobile:mt-0 mx-auto mt-8 w-full max-w-160">
           <Section>
             <Section className="mobile:px-2 bg-white px-6 py-4">
@@ -194,7 +198,7 @@ export const JoinEmail = ({
                     className="mx-auto mb-5 block"
                   />
                   <Heading as="h1" className="font-28 m-0 font-sans text-black">
-                    We&apos;re almost there!
+                    Hi, {firstName}!
                   </Heading>
                 </Section>
 
@@ -202,9 +206,9 @@ export const JoinEmail = ({
                   Thank you for signing up for our short webinar.
                   <br />
                   <br />
-                  <strong>
-                    Your orientation is scheduled for {orientationDateTime}.
-                  </strong>
+                  Your orientation is scheduled for
+                  <br />
+                  <strong>{orientationDateTime}.</strong>
                   <br />
                   <br />
                   To join, simply click the button below.
@@ -213,7 +217,7 @@ export const JoinEmail = ({
                 <Section className="mb-6 text-center">
                   <Button
                     href={zoomUrl}
-                    className="font-16 to inline-block rounded-lg bg-linear-to-br from-brand-purple via-brand-purple/80 to-brand-teal px-7 py-4 text-white"
+                    className="font-16 to from-brandPurple via-brandPurple/80 to-brandTeal inline-block rounded-lg bg-linear-to-br px-7 py-4 text-white"
                   >
                     Join Zoom Meeting
                   </Button>
@@ -250,8 +254,8 @@ export const JoinEmail = ({
                                 : `${baseUrl}/socials/in-icon.png`
                             }
                             alt={label}
-                            width={18}
-                            className="block bg-brand-purple"
+                            width={label === "Facebook" ? 32 : 24}
+                            className="text-brandPurple block"
                           />
                         </Link>
                       ))}

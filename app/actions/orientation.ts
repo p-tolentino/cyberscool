@@ -39,6 +39,7 @@ export async function registerForOrientation(formData: FormData) {
     to: email,
     subject: "Discover the Cybersecurity Path",
     react: JoinEmail({
+      firstName: firstName,
       companyName: "Cyberscool Defcon Inc.",
       zoomUrl: zoomLink,
       orientationDateTime: format(

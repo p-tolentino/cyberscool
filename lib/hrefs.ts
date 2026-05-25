@@ -27,7 +27,7 @@ export const data = () => ({
     {
       icon: Facebook,
       label: "Facebook",
-      href: "https://www.facebook.com/CyberCoolDefcon/",
+      href: "https://www.facebook.com/CybersCoolDefcon/",
     },
     {
       icon: LinkedIn,
