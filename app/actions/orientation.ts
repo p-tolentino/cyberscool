@@ -2,7 +2,6 @@
 
 import JoinEmail from "@/components/email-template"
 import { createClient } from "@/lib/supabase/server"
-import { format } from "date-fns"
 import { revalidatePath } from "next/cache"
 
 import { Resend } from "resend"

@@ -90,7 +90,7 @@ export function OrientationForm({
       if (result.success) {
         setSuccess(true)
         toast.success(
-          "Registration successful! We'll contact you with orientation details."
+          "Registration successful! We sent you via email the orientation details."
         )
       } else {
         toast.error(result.error || "Registration failed. Please try again.")
@@ -200,9 +200,11 @@ export function OrientationForm({
                         Registration Successful!
                       </div>
                       <p className="mb-4 text-muted-foreground">
-                        We&apos;ll contact you at{" "}
-                        <strong>{form.getValues("email")}</strong> with
-                        orientation details and a calendar invite.
+                        Kindly check your email (
+                        <strong>{form.getValues("email")}</strong>), we sent you
+                        the Zoom link for the orientation! <br />
+                        If you are having trouble, try checking the
+                        &apos;Spam&apos; folder.
                       </p>
                       <Button
                         onClick={() => {
