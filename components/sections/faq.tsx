@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from "framer-motion"
 import { ChevronDown } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
-import { VideoPlayer } from "../shadix-ui/components/video-player/video-player"
 
 interface FAQItemProps {
   question: string
@@ -172,19 +171,6 @@ function FAQItem({ question, answer, index }: FAQItemProps) {
               >
                 {answer}
               </motion.p>
-              {(question === "Who is CybersCool Defcon?" ||
-                question ===
-                  "Will there be a training offer during the preview?") && (
-                <div className="video-player-wrapper mt-4 overflow-hidden rounded-lg border">
-                  <VideoPlayer
-                    src={
-                      question === "Who is CybersCool Defcon?"
-                        ? "/zero-to-hero.mp4"
-                        : "/techdx-demo.mp4"
-                    }
-                  />
-                </div>
-              )}
             </div>
           </motion.div>
         )}
