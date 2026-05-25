@@ -202,9 +202,8 @@ export function OrientationForm({
                       <p className="mb-4 text-muted-foreground">
                         Kindly check your email (
                         <strong>{form.getValues("email")}</strong>), we sent you
-                        the Zoom link for the orientation! <br />
-                        If you are having trouble, try checking the
-                        &apos;Spam&apos; folder.
+                        the Zoom link for the orientation! If you are having
+                        trouble, try checking the &apos;Spam&apos; folder.
                       </p>
                       <Button
                         onClick={() => {
