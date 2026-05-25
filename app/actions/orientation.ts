@@ -34,6 +34,12 @@ export async function registerForOrientation(formData: FormData) {
 
   if (error) return { error: error.message }
 
+  const { data } = await supabase
+    .from("orientation_dates")
+    .select("label")
+    .eq("value", orientationDate)
+    .single()
+
   const { error: sendEmailError } = await resend.emails.send({
     from: process.env.EMAIL_FROM!,
     to: email,
@@ -42,10 +48,7 @@ export async function registerForOrientation(formData: FormData) {
       firstName: firstName,
       companyName: "Cyberscool Defcon Inc.",
       zoomUrl: zoomLink,
-      orientationDateTime: format(
-        new Date(orientationDate),
-        "MMMM d, yyyy (EEEE) - h:mm aa"
-      ),
+      orientationDateTime: data?.label.toString(),
     }),
   })
 
