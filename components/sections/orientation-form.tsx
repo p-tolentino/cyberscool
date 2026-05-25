@@ -19,7 +19,6 @@ import { toast } from "sonner"
 import { useState } from "react"
 import { registerForOrientation } from "@/app/actions/orientation"
 import { cn } from "@/lib/utils"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog"
 import { Skeleton } from "../ui/skeleton"
 import { PrivacyDialog } from "../privacy-modal"
 import {
@@ -35,6 +34,7 @@ import {
 export interface OrientationDate {
   value: string
   label: string
+  zoom_link: string
 }
 
 const orientationSchema = z.object({
@@ -43,6 +43,7 @@ const orientationSchema = z.object({
   email: z.string().email("Invalid email address"),
   phone: z.string().min(10, "Valid phone number required"),
   orientationDate: z.string().min(1, "Please select an orientation date"),
+  zoomLink: z.string(),
   dataPrivacy: z
     .boolean()
     .refine(
@@ -373,7 +374,16 @@ export function OrientationForm({
                                 <RadioGroup
                                   name={field.name}
                                   value={field.value}
-                                  onValueChange={field.onChange}
+                                  onValueChange={(selectedValue) => {
+                                    field.onChange(selectedValue)
+                                    const selected = orientationDates.find(
+                                      (d) => d.value === selectedValue
+                                    )
+                                    form.setValue(
+                                      "zoomLink",
+                                      selected?.zoom_link || ""
+                                    )
+                                  }}
                                 >
                                   {orientationDates.map((date) => (
                                     <div

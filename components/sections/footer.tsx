@@ -3,46 +3,8 @@ import { useEffect, useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import {
-  LinkedinIcon as LinkedIn,
-  FacebookIcon as Facebook,
-} from "../icons/il-icons"
 import { PrivacyDialog } from "../privacy-modal"
-
-const data = () => ({
-  navigation: {
-    company: [
-      { name: "About", href: "/about" },
-      { name: "Meet the Team", href: "/team" },
-      { name: "What's In It For Me?", href: "/#preview" },
-      { name: "Why Cybersecurity?", href: "/#why-cyber" },
-      { name: "Testimonials", href: "/#testimonials" },
-      { name: "Our Partners", href: "/#partners" },
-      { name: "FAQs", href: "/#faq" },
-    ],
-    contact: [
-      { name: "Leave a Message", href: "mailto:sales@cyberscooldefcon.com" },
-      { name: "Reserve My Free Seat", href: "/#orientation-form" },
-      { name: "(+63) 920 947 6628", href: "tel:+639209476628" },
-      { name: "(+63) 998 981 1628", href: "tel:+639989811628" },
-      { name: "(+63) 2 7915 6464", href: "tel:+63279156464" },
-    ],
-    legal: [{ name: "Data Privacy", href: "/" }],
-  },
-  socialLinks: [
-    {
-      icon: Facebook,
-      label: "Facebook",
-      href: "https://www.facebook.com/CyberCoolDefcon/",
-    },
-    {
-      icon: LinkedIn,
-      label: "LinkedIn",
-      href: "https://www.linkedin.com/company/cyberscool-defcon-inc/?originalSubdomain=ph",
-    },
-  ],
-  bottomLinks: [{ href: "/privacy", label: "Privacy Policy" }],
-})
+import { data } from "@/lib/hrefs"
 
 export default function Footer() {
   const [isPrivacyOpen, setIsPrivacyOpen] = useState(false)

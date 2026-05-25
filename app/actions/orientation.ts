@@ -1,7 +1,13 @@
 "use server"
 
+import JoinEmail from "@/components/email-template"
 import { createClient } from "@/lib/supabase/server"
+import { format } from "date-fns"
 import { revalidatePath } from "next/cache"
+
+import { Resend } from "resend"
+
+const resend = new Resend(process.env.RESEND_API_KEY)
 
 export async function registerForOrientation(formData: FormData) {
   const firstName = formData.get("firstName") as string
@@ -9,6 +15,7 @@ export async function registerForOrientation(formData: FormData) {
   const email = formData.get("email") as string
   const phone = formData.get("phone") as string
   const orientationDate = formData.get("orientationDate") as string
+  const zoomLink = formData.get("zoomLink") as string
 
   const supabase = await createClient()
 
@@ -26,6 +33,22 @@ export async function registerForOrientation(formData: FormData) {
   ])
 
   if (error) return { error: error.message }
+
+  const { error: sendEmailError } = await resend.emails.send({
+    from: process.env.EMAIL_FROM!,
+    to: email,
+    subject: "Discover the Cybersecurity Path",
+    react: JoinEmail({
+      companyName: "Cyberscool Defcon Inc.",
+      zoomUrl: zoomLink,
+      orientationDateTime: format(
+        new Date(orientationDate),
+        "MMMM d, yyyy (EEEE) - h:mm aa"
+      ),
+    }),
+  })
+
+  if (sendEmailError) return { error: sendEmailError.message }
 
   revalidatePath("/")
   return { success: true }

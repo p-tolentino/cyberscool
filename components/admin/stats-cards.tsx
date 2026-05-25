@@ -51,7 +51,7 @@ export function StatsCards({
 
   const stats = [
     {
-      label: "This Month's Enrollments",
+      label: "Monthly Enrollments",
       value: thisMonthEnrollments,
       icon: signupsIcon,
       color: signupsColor,

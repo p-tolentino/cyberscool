@@ -19,5 +19,6 @@ export async function getOrientationDates() {
   return data.map((d) => ({
     value: d.value,
     label: d.label,
+    zoom_link: d.zoom_link,
   }))
 }

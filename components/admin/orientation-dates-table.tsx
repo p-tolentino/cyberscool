@@ -64,7 +64,7 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>
 
-function generateLabel(datetime: Date) {
+export function generateLabel(datetime: Date) {
   return format(datetime, "MMMM d, yyyy (EEEE) - h:mm aa")
 }
 
