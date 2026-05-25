@@ -246,8 +246,8 @@ export const JoinEmail = ({
                           <Img
                             src={
                               label === "Facebook"
-                                ? `${baseUrl}/facebook-logo.png`
-                                : `${baseUrl}/in-icon.png`
+                                ? `${baseUrl}/socials/facebook-logo.png`
+                                : `${baseUrl}/socials/in-icon.png`
                             }
                             alt={label}
                             width={18}

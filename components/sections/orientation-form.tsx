@@ -401,6 +401,11 @@ export function OrientationForm({
                                         id={date.value}
                                         data-invalid={fieldState.invalid}
                                         className="hover:cursor-pointer"
+                                        disabled={
+                                          isLoadingDates ||
+                                          orientationDates.length === 0 ||
+                                          isPending
+                                        }
                                       />
                                       <Label
                                         htmlFor={date.value}
