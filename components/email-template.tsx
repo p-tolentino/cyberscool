@@ -225,7 +225,7 @@ export const JoinEmail = ({
 
                 <Text className="font-13 text-gray mx-auto mt-8 max-w-100">
                   {process.env.CONTACT_EMAIL &&
-                    `If you have any questions, please contact us at ${process.env.CONTACT_EMAIL!}.`}
+                    `If you have any concerns, please contact us at ${process.env.CONTACT_EMAIL!}.`}
                   <br />
                   <br />
                   If you didn&apos;t request this, please ignore this email.

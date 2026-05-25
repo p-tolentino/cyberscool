@@ -125,10 +125,16 @@ export async function createOrientationDate(formData: FormData) {
   const supabase = await createClient()
   const label = formData.get("label") as string
   const date = formData.get("date") as string
+  const zoomLink = formData.get("zoom_link") as string | null
 
   const { error } = await supabase
     .from("orientation_dates")
-    .insert({ label, value: date, is_active: true })
+    .insert({
+      label,
+      value: date,
+      is_active: true,
+      zoom_link: zoomLink || null,
+    })
 
   if (error) return { success: false, error: error.message }
   revalidatePath("/admin")
@@ -170,10 +176,11 @@ export async function updateOrientationDate(formData: FormData) {
   const dateId = formData.get("id") as string
   const label = formData.get("label") as string
   const value = formData.get("date") as string
+  const zoomLink = formData.get("zoom_link") as string | null
 
   const { error } = await supabase
     .from("orientation_dates")
-    .update({ label, value })
+    .update({ label, value, zoom_link: zoomLink || null })
     .eq("id", dateId)
 
   if (error) return { success: false, error: error.message }

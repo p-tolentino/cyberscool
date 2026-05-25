@@ -15,6 +15,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
   DropdownMenu,
@@ -54,12 +55,15 @@ import {
   Trash2,
   Power,
   PowerOff,
+  ExternalLink,
 } from "lucide-react"
 import { toast } from "sonner"
 import { format } from "date-fns"
+import Link from "next/link"
 
 const formSchema = z.object({
   datetime: z.date({ message: "Date and time are required" }),
+  zoom_link: z.string().url("Must be a valid URL").optional().or(z.literal("")),
 })
 
 type FormValues = z.infer<typeof formSchema>
@@ -72,10 +76,11 @@ export function generateLabel(datetime: Date) {
 function CreateDatePopover({
   onDateCreated,
 }: {
-  onDateCreated: (date: Date) => Promise<void>
+  onDateCreated: (date: Date, zoomLink: string) => Promise<void>
 }) {
   const [open, setOpen] = useState(false)
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined)
+  const [zoomLink, setZoomLink] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleConfirm = async () => {
@@ -85,9 +90,10 @@ function CreateDatePopover({
     }
     setIsSubmitting(true)
     try {
-      await onDateCreated(selectedDate)
+      await onDateCreated(selectedDate, zoomLink.trim())
       setOpen(false)
       setSelectedDate(undefined)
+      setZoomLink("")
     } finally {
       setIsSubmitting(false)
     }
@@ -101,9 +107,24 @@ function CreateDatePopover({
           Add New Date
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0" align="start" side="bottom">
-        <div className="p-4 pb-2">
+      <PopoverContent
+        className="w-auto gap-4 p-0 pt-4"
+        align="start"
+        side="bottom"
+      >
+        <div className="space-y-2 px-4">
+          <Label htmlFor="zoom-link">Orientation Date</Label>
           <DateTimePicker value={selectedDate} onChange={setSelectedDate} />
+        </div>
+        <div className="space-y-2 px-4">
+          <Label htmlFor="zoom-link">Zoom Meeting Link</Label>
+          <Input
+            id="zoom-link"
+            type="url"
+            placeholder="https://zoom.us/j/..."
+            value={zoomLink}
+            onChange={(e) => setZoomLink(e.target.value)}
+          />
         </div>
         <div className="flex justify-end gap-2 border-t p-3">
           <Button variant="outline" size="sm" onClick={() => setOpen(false)}>
@@ -125,7 +146,7 @@ function CreateDatePopover({
 // ========== EDIT DIALOG (unchanged, still modal) ==========
 interface OrientationDateFormDialogProps {
   mode: "edit"
-  initialDate?: Date
+  initialValues?: FormValues
   open: boolean
   onOpenChange: (open: boolean) => void
   onSubmit: (data: FormValues) => Promise<void>
@@ -133,16 +154,14 @@ interface OrientationDateFormDialogProps {
 
 function OrientationDateFormDialog({
   mode,
-  initialDate,
+  initialValues,
   open,
   onOpenChange,
   onSubmit,
 }: OrientationDateFormDialogProps) {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      datetime: initialDate,
-    },
+    defaultValues: initialValues ?? { datetime: undefined, zoom_link: "" },
   })
 
   const handleSubmit = async (data: FormValues) => {
@@ -173,6 +192,19 @@ function OrientationDateFormDialog({
             {form.formState.errors.datetime && (
               <p className="text-xs text-destructive">
                 {form.formState.errors.datetime.message}
+              </p>
+            )}
+          </div>
+          <div className="space-y-2">
+            <Label>Zoom Meeting Link</Label>
+            <Input
+              type="url"
+              placeholder="https://zoom.us/j/..."
+              {...form.register("zoom_link")}
+            />
+            {form.formState.errors.zoom_link && (
+              <p className="text-xs text-destructive">
+                {form.formState.errors.zoom_link.message}
               </p>
             )}
           </div>
@@ -217,7 +249,7 @@ export function OrientationDatesTable({ dates }: OrientationDatesTableProps) {
     }
   }
 
-  const handleDelete = async (id: string, label: string) => {
+  const handleDelete = async (id: string) => {
     const result = await deleteOrientationDate(id)
     if (result.error) {
       toast.error("Failed to delete date")
@@ -227,12 +259,15 @@ export function OrientationDatesTable({ dates }: OrientationDatesTableProps) {
     }
   }
 
-  const handleCreateDate = async (datetime: Date) => {
+  const handleCreateDate = async (datetime: Date, zoomLink: string) => {
     const label = generateLabel(datetime)
     const formData = new FormData()
     formData.set("label", label)
     formData.set("date", datetime.toISOString())
+    if (zoomLink) formData.set("zoom_link", zoomLink)
+
     const result = await createOrientationDate(formData)
+
     if (result.error) {
       toast.error(result.error)
       throw new Error(result.error)
@@ -252,6 +287,26 @@ export function OrientationDatesTable({ dates }: OrientationDatesTableProps) {
           {format(new Date(row.original.value), "MMM d, yyyy (EE, h:mm aa)")}
         </span>
       ),
+    },
+    {
+      id: "zoom_link",
+      accessorKey: "zoom_link",
+      header: "Meeting Room Link",
+      cell: ({ row }) => {
+        const link = row.original.zoom_link
+        if (!link) return <span className="text-muted-foreground">—</span>
+        return (
+          <Link
+            href={link}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 text-sm text-blue-600 hover:underline dark:text-blue-400"
+          >
+            Join Zoom Meeting
+            <ExternalLink className="size-3" />
+          </Link>
+        )
+      },
     },
     {
       accessorKey: "is_active",
@@ -343,7 +398,7 @@ export function OrientationDatesTable({ dates }: OrientationDatesTableProps) {
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
                     <AlertDialogAction
                       variant="destructive"
-                      onClick={() => handleDelete(date.id, date.label)}
+                      onClick={() => handleDelete(date.id)}
                     >
                       Delete
                     </AlertDialogAction>
@@ -364,6 +419,8 @@ export function OrientationDatesTable({ dates }: OrientationDatesTableProps) {
     formData.set("id", editingDate.id)
     formData.set("label", label)
     formData.set("date", data.datetime.toISOString())
+    formData.set("zoom_link", data.zoom_link || "")
+
     const result = await updateOrientationDate(formData)
     if (result.error) {
       toast.error(result.error)
@@ -402,7 +459,10 @@ export function OrientationDatesTable({ dates }: OrientationDatesTableProps) {
       {editingDate && (
         <OrientationDateFormDialog
           mode="edit"
-          initialDate={isValidEditDate ? parsedEditingDate : undefined}
+          initialValues={{
+            datetime: isValidEditDate ? parsedEditingDate : new Date(),
+            zoom_link: editingDate.zoom_link ?? "",
+          }}
           open={!!editingDate}
           onOpenChange={(open) => !open && setEditingDate(null)}
           onSubmit={handleEditSubmit}

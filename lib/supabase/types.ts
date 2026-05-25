@@ -2,6 +2,7 @@ export interface OrientationDate {
   id: string
   label: string
   value: string
+  zoom_link: string
   is_active: boolean
   created_at: string
 }

@@ -28,22 +28,43 @@ export function DateTimePicker({
 }: DateTimePickerProps) {
   const [open, setOpen] = React.useState(false)
 
+  // Helper: combine date from selectedDate and time from existing value (or default)
+  const combineDateAndTime = (date: Date, timeFrom?: Date): Date => {
+    const newDate = new Date(date)
+    if (timeFrom) {
+      newDate.setHours(timeFrom.getHours(), timeFrom.getMinutes())
+    } else {
+      // if no time reference, set to 00:00
+      newDate.setHours(0, 0, 0, 0)
+    }
+    return newDate
+  }
+
   const handleDateSelect = (date: Date | undefined) => {
     if (!date) {
       onChange(undefined)
       return
     }
-    const current = value || new Date()
-    date.setHours(current.getHours())
-    date.setMinutes(current.getMinutes())
-    onChange(date)
+    // Preserve current time if exists, otherwise set to 00:00
+    const newDate = value
+      ? combineDateAndTime(date, value)
+      : combineDateAndTime(date)
+    onChange(newDate)
   }
 
   const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const [hours, minutes] = e.target.value.split(":").map(Number)
-    const newDate = value || new Date()
-    newDate.setHours(hours || 0)
-    newDate.setMinutes(minutes || 0)
+    if (!value) {
+      // If no date selected, create a new date with today's date and given time
+      const today = new Date()
+      const newDate = new Date(today)
+      newDate.setHours(hours || 0, minutes || 0, 0, 0)
+      onChange(newDate)
+      return
+    }
+    // Always create a new Date object to trigger re‑render
+    const newDate = new Date(value)
+    newDate.setHours(hours || 0, minutes || 0, 0, 0)
     onChange(newDate)
   }
 
