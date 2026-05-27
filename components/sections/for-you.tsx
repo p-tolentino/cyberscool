@@ -115,20 +115,20 @@ export default function ThisIsForYou() {
 
           {/* Center column */}
           <div className="order-1 mb-6 self-center sm:order-0 md:mb-0">
-            {/* <div className="relative mx-auto mb-4.5 w-fit rounded-full rounded-bl-xs bg-secondary px-4 py-2 text-sm text-foreground ring ring-border">
+            <div className="relative mx-auto mb-4.5 w-fit rounded-full rounded-bl-xs bg-secondary px-4 py-2 text-sm text-foreground ring ring-border">
               <span className="relative z-1 flex items-center gap-2">
                 No cybersecurity experience required
               </span>
               <span className="absolute -bottom-px left-1/2 h-px w-2/5 -translate-x-1/2 bg-linear-to-r from-primary/0 via-primary to-primary/0"></span>
               <span className="absolute inset-0 bg-[radial-gradient(30%_40%_at_50%_100%,hsl(var(--primary)/0.25)_0%,transparent_100%)]"></span>
-            </div> */}
+            </div>
             <h2 className="mb-2 text-center text-2xl text-foreground sm:mb-2.5 md:text-[2rem]">
               This free career preview is for you if...
             </h2>
-            <p className="mx-auto max-w-[18rem] text-center text-pretty text-muted-foreground">
+            {/* <p className="mx-auto max-w-[18rem] text-center text-pretty text-muted-foreground">
               Start your cybersecurity journey, break the myths, and discover
               the realistic path to a high-growth tech career.
-            </p>
+            </p> */}
           </div>
 
           {/* Right column */}
