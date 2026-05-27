@@ -4,7 +4,6 @@ import {
   Compass,
   Globe,
   Brain,
-  AlertCircle,
   Snail,
   RefreshCw,
 } from "lucide-react"
@@ -31,8 +30,7 @@ const leftFeatures: FeatureItem[] = [
   {
     icon: Snail,
     title: "You feel Stuck in Place",
-    description:
-      "You feel your current tech career has limited growth potential",
+    description: "You feel your current career has limited growth potential",
     position: "left",
     cornerStyle: "sm:-translate-x-4 sm:rounded-br-[2px]",
   },
