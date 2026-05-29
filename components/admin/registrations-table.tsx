@@ -63,11 +63,9 @@ import { Label } from "@/components/ui/label"
 
 import { AssignReferrerDialog } from "@/components/admin/assign-referrer-dialog"
 import { EnrollDialog } from "@/components/admin/enroll-dialog"
-import { OrientationDate } from "../sections/orientation-form"
 import { cn } from "@/lib/utils"
 
 interface RegistrationsTableProps {
-  dates: OrientationDate[]
   registrations: Registration[]
   referrers: Referrer[]
 }
@@ -358,7 +356,6 @@ function FilterContent({
   )
 }
 export function RegistrationsTable({
-  dates,
   registrations,
   referrers,
 }: RegistrationsTableProps) {

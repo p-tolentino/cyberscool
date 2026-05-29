@@ -40,7 +40,6 @@ export default function AdminPanel({
         />
         <RegistrationsTable
           registrations={registrations}
-          dates={dates}
           referrers={referrers}
         />
         <OrientationDatesTable dates={dates} />
