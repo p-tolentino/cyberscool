@@ -216,3 +216,12 @@
 .custom-scrollbar::-webkit-scrollbar-button {
   display: none;
 }
+
+body[data-scroll-locked] {
+  overflow: visible !important;
+  height: auto !important;
+}
+
+body[data-scroll-locked] .fixed-content-offset {
+  margin-right: var(--removed-body-scroll-bar-size);
+}

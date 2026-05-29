@@ -137,7 +137,7 @@ export function DataTable<TData, TValue>({
                     <TableHead
                       key={header.id}
                       className={cn(
-                        "first:pl-2 last:pr-2",
+                        "first:pl-4 last:pr-2",
                         header.column.getIsPinned() &&
                           "sticky left-0 z-10 bg-card"
                       )}
@@ -166,7 +166,7 @@ export function DataTable<TData, TValue>({
                     <TableCell
                       key={cell.id}
                       className={cn(
-                        "first:pl-2 last:pr-2",
+                        "first:pl-4 last:pr-2",
                         cell.column.getIsPinned() &&
                           "sticky left-0 z-10 bg-card"
                       )}

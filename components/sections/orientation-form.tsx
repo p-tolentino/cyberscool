@@ -15,8 +15,15 @@ import {
   FieldLabel,
   FieldError,
 } from "@/components/ui/field"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { toast } from "sonner"
-import { useState } from "react"
+import { useCallback, useState } from "react"
 import { registerForOrientation } from "@/app/actions/orientation"
 import { cn } from "@/lib/utils"
 import { Skeleton } from "../ui/skeleton"
@@ -37,20 +44,35 @@ export interface OrientationDate {
   zoom_link: string
 }
 
-const orientationSchema = z.object({
-  firstName: z.string().min(2, "First name is required"),
-  lastName: z.string().min(2, "Last name is required"),
-  email: z.string().email("Invalid email address"),
-  phone: z.string().min(10, "Valid phone number required"),
-  orientationDate: z.string().min(1, "Please select an orientation date"),
-  zoomLink: z.string(),
-  dataPrivacy: z
-    .boolean()
-    .refine(
-      (val) => val === true,
-      "You must agree to the Data Privacy Act of 2012"
-    ),
-})
+const orientationSchema = z
+  .object({
+    firstName: z.string().min(2, "First name is required"),
+    lastName: z.string().min(2, "Last name is required"),
+    email: z.string().email("Invalid email address"),
+    phone: z.string().min(10, "Valid phone number required"),
+    heardFrom: z.string().min(1, "Please select how you heard about us"),
+    otherSource: z.string().optional(),
+    orientationDate: z.string().min(1, "Please select an orientation date"),
+    zoomLink: z.string(),
+    dataPrivacy: z
+      .boolean()
+      .refine(
+        (val) => val === true,
+        "You must agree to the Data Privacy Act of 2012"
+      ),
+  })
+  .superRefine((data, ctx) => {
+    if (
+      data.heardFrom === "Other" &&
+      (!data.otherSource || data.otherSource.trim() === "")
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["otherSource"],
+        message: "Please specify how you heard about us",
+      })
+    }
+  })
 
 type OrientationFormData = z.infer<typeof orientationSchema>
 
@@ -71,6 +93,8 @@ export function OrientationForm({
       lastName: "",
       email: "",
       phone: "",
+      heardFrom: "",
+      otherSource: "",
       orientationDate: "",
       dataPrivacy: false,
     },
@@ -347,6 +371,109 @@ export function OrientationForm({
                         </div>
 
                         <Controller
+                          name="heardFrom"
+                          control={form.control}
+                          render={({ field, fieldState }) => (
+                            <Field>
+                              <FieldLabel>
+                                How did you hear about us?{" "}
+                                <span className="text-destructive">*</span>
+                              </FieldLabel>
+                              <Select
+                                onValueChange={field.onChange}
+                                defaultValue={field.value}
+                                disabled={
+                                  isLoadingDates ||
+                                  orientationDates.length === 0 ||
+                                  isPending
+                                }
+                              >
+                                <SelectTrigger
+                                  className={cn(
+                                    fieldState.invalid
+                                      ? "border-destructive"
+                                      : "",
+                                    "py-5"
+                                  )}
+                                >
+                                  <SelectValue placeholder="Select an option" />
+                                </SelectTrigger>
+                                <SelectContent
+                                  position="popper"
+                                  className="p-2"
+                                >
+                                  <SelectItem value="Facebook">
+                                    Facebook
+                                  </SelectItem>
+                                  <SelectItem value="Reddit">Reddit</SelectItem>
+                                  <SelectItem value="Personal Invite">
+                                    Personal Invite
+                                  </SelectItem>
+                                  <SelectItem value="LinkedIn">
+                                    LinkedIn
+                                  </SelectItem>
+                                  <SelectItem value="Google Search">
+                                    Google Search
+                                  </SelectItem>
+                                  <SelectItem value="YouTube">
+                                    YouTube
+                                  </SelectItem>
+                                  <SelectItem value="Other">Other</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              {fieldState.error && (
+                                <FieldError>
+                                  {fieldState.error.message}
+                                </FieldError>
+                              )}
+                            </Field>
+                          )}
+                        />
+
+                        <div
+                          className={cn(
+                            "overflow-hidden transition-all duration-300 ease-in-out",
+                            form.watch("heardFrom") === "Other"
+                              ? "max-h-40 opacity-100"
+                              : "max-h-0 opacity-0"
+                          )}
+                        >
+                          <Controller
+                            name="otherSource"
+                            control={form.control}
+                            render={({ field, fieldState }) => (
+                              <div className="pt-2">
+                                <Field>
+                                  <FieldLabel>
+                                    Please specify{" "}
+                                    <span className="text-destructive">*</span>
+                                  </FieldLabel>
+                                  <Input
+                                    {...field}
+                                    placeholder="e.g., Podcast, Friend, Webinar..."
+                                    disabled={
+                                      isLoadingDates ||
+                                      orientationDates.length === 0 ||
+                                      isPending
+                                    }
+                                    className={
+                                      fieldState.invalid
+                                        ? "border-destructive"
+                                        : ""
+                                    }
+                                  />
+                                  {fieldState.error && (
+                                    <FieldError>
+                                      {fieldState.error.message}
+                                    </FieldError>
+                                  )}
+                                </Field>
+                              </div>
+                            )}
+                          />
+                        </div>
+
+                        <Controller
                           name="orientationDate"
                           control={form.control}
                           render={({ field, fieldState }) => (
@@ -474,7 +601,7 @@ export function OrientationForm({
 
                       <Button
                         type="submit"
-                        className="w-full bg-primary/70 bg-linear-to-b from-brand-purple via-brand-purple/70 to-primary text-white hover:bg-primary/90"
+                        className="h-10 w-full bg-primary/70 bg-linear-to-b from-brand-purple via-brand-purple/70 to-primary text-white hover:bg-primary/90"
                         disabled={
                           isLoadingDates ||
                           orientationDates.length === 0 ||

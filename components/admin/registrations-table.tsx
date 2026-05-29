@@ -158,6 +158,29 @@ export function RegistrationsTable({
       ),
     },
     {
+      id: "lead_source",
+      header: "Lead Source",
+      meta: "Lead Source",
+      cell: ({ row }) => {
+        const heardFrom = row.original.heard_from
+        const otherSource = row.original.other_source
+
+        if (!heardFrom) {
+          return <span className="text-xs text-muted-foreground">—</span>
+        }
+
+        if (heardFrom === "Other" && otherSource) {
+          return (
+            <span className="text-xs">
+              Other: <span className="font-medium">{otherSource}</span>
+            </span>
+          )
+        }
+
+        return <span className="text-xs">{heardFrom}</span>
+      },
+    },
+    {
       accessorKey: "email_sent",
       header: "Email Sent",
       meta: "Email Sent",
@@ -280,7 +303,7 @@ export function RegistrationsTable({
       cell: ({ row }) => {
         const reg = row.original
         return (
-          <DropdownMenu>
+          <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="size-8">
                 <MoreHorizontal className="size-4" />

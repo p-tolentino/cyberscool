@@ -13,6 +13,8 @@ export async function registerForOrientation(formData: FormData) {
   const lastName = formData.get("lastName") as string
   const email = formData.get("email") as string
   const phone = formData.get("phone") as string
+  const heardFrom = formData.get("heardFrom") as string
+  const otherSource = formData.get("otherSource") as string | null
   const orientationDate = formData.get("orientationDate") as string
   const zoomLink = formData.get("zoomLink") as string
 
@@ -24,6 +26,8 @@ export async function registerForOrientation(formData: FormData) {
       last_name: lastName,
       email,
       phone,
+      heard_from: heardFrom,
+      other_source: otherSource || null,
       orientation_date: orientationDate,
       email_sent: false,
       contacted: false,

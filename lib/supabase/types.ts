@@ -20,6 +20,8 @@ export interface Registration {
   last_name: string
   email: string
   phone: string | null
+  heard_from: string | null
+  other_source: string | null
   program_interest: string
   orientation_date: string
   email_sent: boolean

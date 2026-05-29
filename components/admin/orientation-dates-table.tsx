@@ -291,6 +291,7 @@ export function OrientationDatesTable({ dates }: OrientationDatesTableProps) {
     {
       id: "zoom_link",
       accessorKey: "zoom_link",
+      meta: "Zoom Link",
       header: "Meeting Room Link",
       cell: ({ row }) => {
         const link = row.original.zoom_link
@@ -351,7 +352,7 @@ export function OrientationDatesTable({ dates }: OrientationDatesTableProps) {
       cell: ({ row }) => {
         const date = row.original
         return (
-          <DropdownMenu>
+          <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="size-8">
                 <MoreHorizontal className="size-4" />
