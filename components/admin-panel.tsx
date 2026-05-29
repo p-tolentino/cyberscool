@@ -38,12 +38,12 @@ export default function AdminPanel({
           pendingEmails={stats.pendingEmails}
           pendingContact={stats.pendingContact}
         />
-        <OrientationDatesTable dates={dates} />
         <RegistrationsTable
           registrations={registrations}
           dates={dates}
           referrers={referrers}
         />
+        <OrientationDatesTable dates={dates} />
       </main>
     </div>
   )
