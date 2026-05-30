@@ -405,9 +405,12 @@ export function OrientationForm({
                                   <SelectItem value="Facebook">
                                     Facebook
                                   </SelectItem>
+                                  <SelectItem value="Instagram">
+                                    Instagram
+                                  </SelectItem>
                                   <SelectItem value="Reddit">Reddit</SelectItem>
                                   <SelectItem value="Personal Invite">
-                                    Personal Invite
+                                    Invited by Friend
                                   </SelectItem>
                                   <SelectItem value="LinkedIn">
                                     LinkedIn
@@ -450,7 +453,7 @@ export function OrientationForm({
                                   </FieldLabel>
                                   <Input
                                     {...field}
-                                    placeholder="e.g., Podcast, Friend, Webinar..."
+                                    placeholder="e.g., Podcast, Webinar..."
                                     disabled={
                                       isLoadingDates ||
                                       orientationDates.length === 0 ||
