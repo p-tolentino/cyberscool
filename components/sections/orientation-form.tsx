@@ -409,8 +409,8 @@ export function OrientationForm({
                                     Instagram
                                   </SelectItem>
                                   <SelectItem value="Reddit">Reddit</SelectItem>
-                                  <SelectItem value="Personal Invite">
-                                    Invited by Friend
+                                  <SelectItem value="Friend or Acquaintance">
+                                    Friend or Acquaintance
                                   </SelectItem>
                                   <SelectItem value="LinkedIn">
                                     LinkedIn
