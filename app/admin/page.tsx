@@ -1,27 +1,21 @@
-import AdminPanel from "@/components/admin-panel"
-import { AdminLogin } from "@/components/admin/admin-login"
+import { StatsCards } from "@/components/admin/stats-cards"
+import { OrientationDatesTable } from "@/components/admin/orientation-dates-table"
+import { RegistrationsTable } from "@/components/admin/registrations-table"
 import {
   getOrientationDates,
   getProspects,
-  checkAdminSession,
   getReferrers,
 } from "../actions/admin"
 
 export async function generateMetadata() {
   return {
-    title: "Admin Dashboard | CybersCool Defcon",
+    title: "Dashboard | CybersCool Defcon Inc.",
     description:
-      "Manage orientation dates and view registrations for CybersCool Defcon programs.",
+      "Manage orientation dates and view registrations for CybersCool Defcon Inc. programs.",
   }
 }
 
 export default async function AdminPage() {
-  const isAuthenticated = await checkAdminSession()
-
-  if (!isAuthenticated) {
-    return <AdminLogin />
-  }
-
   const [dates, registrations, referrers] = await Promise.all([
     getOrientationDates(),
     getProspects(),
@@ -52,11 +46,18 @@ export default async function AdminPage() {
   }
 
   return (
-    <AdminPanel
-      dates={safeDates}
-      registrations={safeRegs}
-      referrers={referrers}
-      stats={stats}
-    />
+    <>
+      <StatsCards
+        thisMonthEnrollments={stats.thisMonthEnrollments}
+        activeDates={stats.activeDates}
+        pendingEmails={stats.pendingEmails}
+        pendingContact={stats.pendingContact}
+      />
+      <RegistrationsTable
+        registrations={safeRegs}
+        referrers={referrers}
+      />
+      <OrientationDatesTable dates={safeDates} />
+    </>
   )
 }

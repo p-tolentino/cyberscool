@@ -83,7 +83,7 @@ export function StatsCards({
         return (
           <Card
             key={stat.label}
-            className="shadow-sm transition-shadow hover:shadow-md"
+            className="shadow-sm transition-all duration-200 hover:scale-[1.02] hover:shadow-md"
           >
             <CardContent className="px-3 sm:px-4">
               <div className="flex items-center justify-between gap-2">

@@ -9,31 +9,31 @@ const geist = Geist({ subsets: ["latin"], variable: "--font-sans" })
 const fontMono = Geist_Mono({ subsets: ["latin"], variable: "--font-mono" })
 
 export const metadata = {
-  title: "CybersCool Defcon | Cybersecurity Training Philippines",
+  title: "CybersCool Defcon Inc. | Cybersecurity Training Philippines",
   description:
     "Premier cybersecurity training institute in the Philippines offering hands-on programs from foundational to advanced levels.",
   keywords: [
     "cybersecurity",
     "training",
     "Philippines",
-    "CybersCool",
+    "CybersCool Defcon Inc.",
     "IT security",
     "cyber defense",
   ],
-  authors: [{ name: "CybersCool Defcon" }],
+  authors: [{ name: "CybersCool Defcon Inc." }],
   metadataBase: new URL("https://cyberscooldefcon.com"),
   openGraph: {
-    title: "CybersCool Defcon | Cybersecurity Training Philippines",
+    title: "CybersCool Defcon Inc. | Cybersecurity Training Philippines",
     description:
       "Premier cybersecurity training institute in the Philippines offering hands-on programs from foundational to advanced levels.",
     url: "https://cyberscooldefcon.com",
-    siteName: "CybersCool Defcon",
+    siteName: "CybersCool Defcon Inc.",
     images: [
       {
         url: "/logo.png",
         width: 800,
         height: 600,
-        alt: "CybersCool Defcon Logo",
+        alt: "CybersCool Defcon Inc. Logo",
       },
     ],
     locale: "en_US",
@@ -41,7 +41,7 @@ export const metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "CybersCool Defcon | Cybersecurity Training Philippines",
+    title: "CybersCool Defcon Inc. | Cybersecurity Training Philippines",
     description:
       "Premier cybersecurity training institute in the Philippines offering hands-on programs from foundational to advanced levels.",
     images: ["/logo.png"],
