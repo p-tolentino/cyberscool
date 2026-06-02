@@ -12,6 +12,7 @@ import {
   ChevronLeft,
   Search,
   Loader2,
+  X,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
@@ -55,11 +56,8 @@ function getInitial(from: string): string {
   return from.charAt(0).toUpperCase()
 }
 
-function avatarColor(sel: string) {
-  const n = sel.charCodeAt(sel.length - 1) || 0
-  return n % 2 === 0
-    ? "bg-brand-purple/10 text-brand-purple dark:bg-purple-950/30 dark:text-purple-400"
-    : "bg-brand-teal/10 text-brand-teal dark:bg-cyan-950/30 dark:text-cyan-400"
+function avatarColor() {
+  return "bg-brand-teal/10 text-brand-teal dark:bg-cyan-950/30 dark:text-cyan-400"
 }
 
 function emailDate(d: string) {
@@ -85,7 +83,9 @@ function loadReadIds(): Set<string> {
 function saveReadIds(ids: Set<string>) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify([...ids]))
-  } catch { /* quota exceeded */ }
+  } catch {
+    /* quota exceeded */
+  }
 }
 
 // ─── Component ───────────────────────────────────────
@@ -113,7 +113,11 @@ export default function InboxPage() {
   // Reply
   const [replyText, setReplyText] = useState("")
   const [sending, setSending] = useState(false)
-  const [downloadingId, setDownloadingId] = useState<string | null>(null)
+  const [downloadingIds, setDownloadingIds] = useState<Set<string>>(new Set())
+
+  // Reply files
+  const [replyFiles, setReplyFiles] = useState<File[]>([])
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Refs
   const isMounted = useRef(true)
@@ -141,7 +145,11 @@ export default function InboxPage() {
       const params = new URLSearchParams()
       params.set("limit", String(PAGE_SIZE))
       params.set("after", nextCursor)
-      const { emails: newEmails, hasMore: more, nextCursor: cursor } = await fetchWithTimeout(`/api/inbox/list?${params}`)
+      const {
+        emails: newEmails,
+        hasMore: more,
+        nextCursor: cursor,
+      } = await fetchWithTimeout(`/api/inbox/list?${params}`)
       if (!isMounted.current) return
       setEmails((prev) => [...prev, ...newEmails])
       setHasMore(more)
@@ -157,8 +165,11 @@ export default function InboxPage() {
     try {
       const params = new URLSearchParams()
       params.set("limit", String(PAGE_SIZE))
-      params.set("skip", "9")
-      const { emails: list, hasMore: more, nextCursor: cursor } = await fetchWithTimeout(`/api/inbox/list?${params}`)
+      const {
+        emails: list,
+        hasMore: more,
+        nextCursor: cursor,
+      } = await fetchWithTimeout(`/api/inbox/list?${params}`)
       if (!isMounted.current) return
       setEmails(list)
       setHasMore(more)
@@ -180,58 +191,75 @@ export default function InboxPage() {
     })
   }, [])
 
-  const openEmail = useCallback(async (id: string) => {
-    markRead(id)
-    setLoadingDetail(true)
-    try {
-      const res = await fetch(`/api/inbox/${id}`)
-      if (!res.ok) throw new Error()
-      const full = await res.json()
-      if (!isMounted.current) return
-      setSelectedEmail(full)
-      setReplyText("")
-    } catch {
-      toast.error("Failed to load email")
-    } finally {
-      if (isMounted.current) setLoadingDetail(false)
-    }
-  }, [markRead])
+  const openEmail = useCallback(
+    async (id: string) => {
+      markRead(id)
+      setLoadingDetail(true)
+      try {
+        const res = await fetch(`/api/inbox/${id}`)
+        if (!res.ok) throw new Error()
+        const full = await res.json()
+        if (!isMounted.current) return
+        setSelectedEmail(full)
+        setReplyText("")
+        setReplyFiles([])
+      } catch {
+        toast.error("Failed to load email")
+      } finally {
+        if (isMounted.current) setLoadingDetail(false)
+      }
+    },
+    [markRead]
+  )
 
-  const handleDownload = useCallback(async (emailId: string, attId: string, name: string) => {
-    setDownloadingId(attId)
-    try {
-      const res = await fetch(`/api/inbox/attachment?emailId=${emailId}&attachmentId=${attId}`)
-      if (!res.ok) throw new Error()
-      const blob = await res.blob()
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement("a")
-      a.href = url; a.download = name
-      a.click()
-      URL.revokeObjectURL(url)
-    } catch {
-      toast.error("Download failed")
-    } finally {
-      if (isMounted.current) setDownloadingId(null)
-    }
-  }, [])
+  const handleDownload = useCallback(
+    async (emailId: string, attId: string, name: string) => {
+      setDownloadingIds((prev) => new Set(prev).add(attId))
+      try {
+        const res = await fetch(
+          `/api/inbox/attachment?emailId=${emailId}&attachmentId=${attId}`
+        )
+        if (!res.ok) throw new Error()
+        const blob = await res.blob()
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement("a")
+        a.href = url
+        a.download = name
+        a.click()
+        URL.revokeObjectURL(url)
+      } catch {
+        toast.error("Download failed")
+      } finally {
+        if (isMounted.current)
+          setDownloadingIds((prev) => {
+            const n = new Set(prev)
+            n.delete(attId)
+            return n
+          })
+      }
+    },
+    []
+  )
 
   const handleReply = useCallback(async () => {
     if (!selectedEmail || !replyText.trim()) return
     setSending(true)
     try {
+      const fd = new FormData()
+      fd.set("originalMessageId", selectedEmail.id)
+      fd.set("to", selectedEmail.from)
+      fd.set("subject", selectedEmail.subject)
+      fd.set("replyHtml", `<p>${replyText.replace(/\n/g, "<br/>")}</p>`)
+      replyFiles.forEach((f) => fd.append("attachment", f))
+
       const res = await fetch("/api/inbox/reply", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          originalMessageId: selectedEmail.id,
-          to: selectedEmail.from,
-          subject: selectedEmail.subject,
-          replyHtml: `<p>${replyText.replace(/\n/g, "<br/>")}</p>`,
-        }),
+        body: fd,
       })
       if (res.ok) {
         toast.success("Reply sent!")
         setReplyText("")
+        setReplyFiles([])
         setSelectedEmail(null)
       } else {
         toast.error("Failed to send reply")
@@ -241,7 +269,7 @@ export default function InboxPage() {
     } finally {
       setSending(false)
     }
-  }, [selectedEmail, replyText])
+  }, [selectedEmail, replyText, replyFiles])
 
   // ── Effects ───────────────────────────────────────
 
@@ -252,20 +280,30 @@ export default function InboxPage() {
     const id = setTimeout(() => controller.abort(), 15000)
     const params = new URLSearchParams()
     params.set("limit", String(PAGE_SIZE))
-    params.set("skip", "9")
 
     fetch(`/api/inbox/list?${params}`, { signal: controller.signal })
-      .then(r => { if (!r.ok) throw new Error(); return r.json() })
+      .then((r) => {
+        if (!r.ok) throw new Error()
+        return r.json()
+      })
       .then(({ emails, hasMore, nextCursor }) => {
         if (cancelled) return
         setEmails(emails)
         setHasMore(hasMore)
         setNextCursor(nextCursor)
       })
-      .catch(e => { if (e.name !== "AbortError") console.error(e) })
-      .finally(() => { if (!cancelled) setLoading(false) })
+      .catch((e) => {
+        if (e.name !== "AbortError") console.error(e)
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
 
-    return () => { cancelled = true; clearTimeout(id); controller.abort() }
+    return () => {
+      cancelled = true
+      clearTimeout(id)
+      controller.abort()
+    }
   }, [])
 
   // Polling
@@ -282,7 +320,7 @@ export default function InboxPage() {
       (entries) => {
         if (entries[0].isIntersecting) loadMore()
       },
-      { rootMargin: "400px" },
+      { rootMargin: "400px" }
     )
     obs.observe(el)
     return () => obs.disconnect()
@@ -294,8 +332,7 @@ export default function InboxPage() {
     const q = searchQuery.toLowerCase()
     return emails.filter(
       (e) =>
-        e.from.toLowerCase().includes(q) ||
-        e.subject.toLowerCase().includes(q),
+        e.from.toLowerCase().includes(q) || e.subject.toLowerCase().includes(q)
     )
   }, [emails, searchQuery])
 
@@ -334,7 +371,7 @@ export default function InboxPage() {
         {/* Search */}
         <div className="border-b p-3">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="Search sender or subject…"
               value={searchQuery}
@@ -370,21 +407,24 @@ export default function InboxPage() {
                   <div
                     key={email.id}
                     className={cn(
-                      "relative flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 transition-all duration-150",
+                      "relative flex cursor-pointer items-center gap-3 rounded-lg px-4 py-2.5 transition-all duration-150",
                       unread
-                        ? "bg-brand-purple/[0.02] hover:bg-brand-purple/5"
+                        ? "bg-brand-purple/2 hover:bg-brand-purple/5"
                         : "hover:bg-muted/50",
-                      selectedEmail?.id === email.id && "bg-brand-purple/10",
+                      selectedEmail?.id === email.id && "bg-brand-purple/10"
                     )}
                     onClick={() => openEmail(email.id)}
                   >
                     {/* Unread dot */}
                     {unread && (
-                      <div className="absolute left-0 top-1/2 size-2 -translate-y-1/2 -translate-x-1 rounded-full bg-brand-purple ring-2 ring-background" />
+                      <div className="absolute top-1/2 left-2 size-2 -translate-x-1 -translate-y-1/2 rounded-full bg-brand-purple ring-2 ring-background" />
                     )}
                     <Avatar className="size-8 shrink-0">
                       <AvatarFallback
-                        className={cn("text-[10px] font-semibold", avatarColor(email.id))}
+                        className={cn(
+                          "text-[10px] font-semibold",
+                          avatarColor()
+                        )}
                       >
                         {getInitial(email.from)}
                       </AvatarFallback>
@@ -394,16 +434,22 @@ export default function InboxPage() {
                         <span
                           className={cn(
                             "truncate text-sm",
-                            unread ? "font-semibold text-foreground" : "text-foreground",
+                            unread
+                              ? "font-semibold text-foreground"
+                              : "text-foreground"
                           )}
                         >
                           {email.from}
                         </span>
-                        <span className="shrink-0 text-xs text-muted-foreground">·</span>
+                        <span className="shrink-0 text-xs text-muted-foreground">
+                          ·
+                        </span>
                         <span
                           className={cn(
                             "truncate text-xs",
-                            unread ? "font-medium text-foreground" : "text-muted-foreground",
+                            unread
+                              ? "font-medium text-foreground"
+                              : "text-muted-foreground"
                           )}
                         >
                           {email.subject || "(no subject)"}
@@ -433,7 +479,9 @@ export default function InboxPage() {
 
               {/* Infinite scroll sentinel */}
               <div ref={sentinelRef} className="flex justify-center py-4">
-                {loadingMore && <Loader2 className="size-5 animate-spin text-brand-purple" />}
+                {loadingMore && (
+                  <Loader2 className="size-5 animate-spin text-brand-purple" />
+                )}
               </div>
             </>
           )}
@@ -481,19 +529,26 @@ export default function InboxPage() {
               variant="ghost"
               size="icon"
               onClick={close}
-              className="-ml-1 -mt-1 size-8 shrink-0"
+              className="mt-1 -ml-1 size-8 shrink-0"
             >
               <ChevronLeft className="size-5" />
             </Button>
           )}
           <Avatar className="size-10 shrink-0">
-            <AvatarFallback className={cn("text-xs font-semibold", avatarColor(selectedEmail.id))}>
+            <AvatarFallback
+              className={cn("text-xs font-semibold", avatarColor())}
+            >
               {getInitial(selectedEmail.from)}
             </AvatarFallback>
           </Avatar>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-semibold">{selectedEmail.from}</p>
-            <p className="truncate text-xs text-muted-foreground">{selectedEmail.to.join(", ")}</p>
+            <p className="truncate text-sm font-semibold">
+              {selectedEmail.from}
+            </p>
+            <p className="truncate text-xs text-muted-foreground">
+              <span className="font-medium">To:</span>{" "}
+              {selectedEmail.to.join(", ")}
+            </p>
             <p className="mt-0.5 text-xs text-muted-foreground">
               {new Date(selectedEmail.created_at).toLocaleString()}
             </p>
@@ -503,56 +558,84 @@ export default function InboxPage() {
         {/* Scrollable body */}
         <div className="flex-1 overflow-y-auto">
           <div className="px-4 pt-4">
-            <h2 className="text-base font-bold">{selectedEmail.subject || "(no subject)"}</h2>
+            <h2 className="text-base font-bold">
+              {selectedEmail.subject || "(no subject)"}
+            </h2>
           </div>
 
           {/* Attachments */}
-          {selectedEmail.attachments && selectedEmail.attachments.length > 0 && (
-            <div className="mx-4 mt-4 rounded-lg border bg-card">
-              <div className="px-3 py-2">
-                <p className="mb-2 text-xs font-semibold text-muted-foreground">
-                  Attachments ({selectedEmail.attachments.length})
-                </p>
-                <div className="space-y-1.5">
-                  {selectedEmail.attachments.map((att) => (
-                    <div
-                      key={att.id}
-                      className="flex items-center justify-between gap-2 rounded-md border bg-muted/20 p-2 transition-colors hover:bg-muted/40"
-                    >
-                      <div className="flex min-w-0 items-center gap-2">
-                        <Paperclip className="size-3.5 shrink-0 text-muted-foreground" />
-                        <span className="truncate text-sm">{att.filename}</span>
-                        <span className="hidden text-xs text-muted-foreground sm:inline">({att.content_type})</span>
-                      </div>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handleDownload(selectedEmail.id, att.id, att.filename)}
-                        disabled={downloadingId === att.id}
-                        className="shrink-0"
+          {selectedEmail.attachments &&
+            selectedEmail.attachments.length > 0 && (
+              <div className="mx-4 mt-4 rounded-lg border bg-card">
+                <div className="px-3 py-2">
+                  <p className="mb-2 text-xs font-semibold text-muted-foreground">
+                    Attachments ({selectedEmail.attachments.length})
+                  </p>
+                  <div className="space-y-1.5">
+                    {selectedEmail.attachments.map((att) => (
+                      <div
+                        key={att.id}
+                        className="flex items-center justify-between gap-2 rounded-md border bg-muted/20 p-2 transition-colors hover:bg-muted/40"
                       >
-                        {downloadingId === att.id ? (
-                          <><Spinner className="mr-1.5 size-3" />Downloading…</>
-                        ) : (
-                          <><Download className="mr-1.5 size-3" />Download</>
-                        )}
-                      </Button>
-                    </div>
-                  ))}
+                        <div className="flex min-w-0 items-center gap-2">
+                          <Paperclip className="size-3.5 shrink-0 text-muted-foreground" />
+                          <span className="truncate text-sm">
+                            {att.filename}
+                          </span>
+                          <span className="hidden text-xs text-muted-foreground sm:inline">
+                            ({att.content_type})
+                          </span>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() =>
+                            handleDownload(
+                              selectedEmail.id,
+                              att.id,
+                              att.filename
+                            )
+                          }
+                          disabled={downloadingIds.has(att.id)}
+                          className="shrink-0"
+                        >
+                          {downloadingIds.has(att.id) ? (
+                            <>
+                              <Spinner className="mr-1.5 size-3" />
+                              Downloading…
+                            </>
+                          ) : (
+                            <>
+                              <Download className="mr-1.5 size-3" />
+                              Download
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
           {/* Body */}
           <div className="px-4 py-4">
             {selectedEmail.html ? (
-              <div
-                className="prose prose-sm dark:prose-invert prose-headings:font-semibold prose-a:text-brand-purple prose-blockquote:border-l-brand-purple prose-code:rounded prose-code:bg-muted prose-code:px-1 prose-code:py-0.5 prose-pre:bg-muted prose-pre:text-foreground max-w-none"
-                dangerouslySetInnerHTML={{ __html: selectedEmail.html }}
-              />
+              <>
+                <style>{`
+                  .email-body { color-scheme: light dark; }
+                  .dark .email-body * {
+                    background-color: transparent !important;
+                    color: rgb(229 231 235) !important;
+                  }
+                `}</style>
+                <div
+                  className="email-body prose prose-sm dark:prose-invert prose-headings:font-semibold prose-a:text-brand-purple prose-blockquote:border-l-brand-purple prose-code:rounded prose-code:bg-muted prose-code:px-1 prose-code:py-0.5 prose-pre:bg-muted prose-pre:text-foreground max-w-none"
+                  dangerouslySetInnerHTML={{ __html: selectedEmail.html }}
+                />
+              </>
             ) : (
-              <div className="whitespace-pre-wrap text-sm leading-relaxed">
+              <div className="text-sm leading-relaxed whitespace-pre-wrap">
                 {selectedEmail.text || "No content"}
               </div>
             )}
@@ -571,6 +654,48 @@ export default function InboxPage() {
             onChange={(e) => setReplyText(e.target.value)}
             className="resize-none text-sm"
           />
+
+          {/* Attachments */}
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              className="hidden"
+              onChange={(e) => {
+                const files = Array.from(e.target.files || [])
+                setReplyFiles((prev) => [...prev, ...files])
+                e.target.value = ""
+              }}
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => fileInputRef.current?.click()}
+              className="gap-1.5 text-xs"
+            >
+              <Paperclip className="size-3.5" />
+              Attach
+            </Button>
+            {replyFiles.map((file, i) => (
+              <span
+                key={i}
+                className="inline-flex items-center gap-1 rounded-md border bg-muted/30 px-2 py-1 text-xs"
+              >
+                {file.name}
+                <button
+                  onClick={() =>
+                    setReplyFiles((prev) => prev.filter((_, j) => j !== i))
+                  }
+                  className="ml-0.5 text-muted-foreground hover:text-foreground"
+                >
+                  <X className="size-3" />
+                </button>
+              </span>
+            ))}
+          </div>
+
           <div className="mt-3 flex justify-end">
             <Button
               onClick={handleReply}
@@ -578,9 +703,15 @@ export default function InboxPage() {
               className="gap-2 bg-brand-purple hover:bg-brand-purple/90"
             >
               {sending ? (
-                <><Spinner className="size-4" />Sending…</>
+                <>
+                  <Spinner className="size-4" />
+                  Sending…
+                </>
               ) : (
-                <><Send className="size-4" />Send Reply</>
+                <>
+                  <Send className="size-4" />
+                  Send Reply
+                </>
               )}
             </Button>
           </div>
@@ -594,7 +725,7 @@ export default function InboxPage() {
   if (loading) {
     return (
       <div className="flex gap-0 rounded-xl border bg-card">
-        <div className="w-full lg:w-[420px] xl:w-[480px]">
+        <div className="w-full lg:w-105 xl:w-120">
           <div className="border-b p-4">
             <Skeleton className="mb-1 h-7 w-24" />
             <Skeleton className="h-4 w-16" />
@@ -635,8 +766,8 @@ export default function InboxPage() {
   return (
     <>
       {/* ── Desktop (lg+) — split panel ─────────── */}
-      <div className="hidden lg:flex gap-0 overflow-hidden rounded-xl border bg-card shadow-sm">
-        <div className="flex w-full flex-col lg:w-[420px] xl:w-[480px]">
+      <div className="hidden gap-0 overflow-hidden rounded-xl border bg-card shadow-sm lg:flex h-[calc(100vh-128px)]">
+        <div className="flex w-full flex-col lg:w-105 xl:w-120">
           {renderListPanel()}
         </div>
         <div className="flex flex-1 flex-col border-l">
@@ -646,11 +777,12 @@ export default function InboxPage() {
 
       {/* ── Mobile (<lg) — full-screen view swap ── */}
       <div className="lg:hidden">
-        {(selectedEmail || loadingDetail) ? (
+        {selectedEmail || loadingDetail ? (
           <div className="fixed inset-0 z-40 flex flex-col bg-background">
             {renderDetailContent(() => {
               setSelectedEmail(null)
               setReplyText("")
+              setReplyFiles([])
               setLoadingDetail(false)
             })}
           </div>

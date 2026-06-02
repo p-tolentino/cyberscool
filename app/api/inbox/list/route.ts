@@ -8,10 +8,8 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const after = searchParams.get("after") || undefined
     const limit = Math.min(Number(searchParams.get("limit")) || 50, 100)
-    const skip = Math.max(Number(searchParams.get("skip")) || 0, 0)
 
-    const fetchLimit = skip > 0 ? limit + skip : limit
-    const result = await resend.emails.receiving.list({ after, limit: fetchLimit })
+    const result = await resend.emails.receiving.list({ after, limit })
 
     const { data, error } = result
     if (error) {
@@ -19,10 +17,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    let emails = data.data
-    if (skip > 0 && !after) {
-      emails = emails.slice(skip)
-    }
+    const emails = data.data
     const hasMore = data.has_more
     const nextCursor = emails.length > 0 ? emails[emails.length - 1].id : null
 
