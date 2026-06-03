@@ -10,7 +10,11 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { assignReferrer, createReferrer } from "@/app/actions/admin"
+import {
+  assignReferrer,
+  createReferrer,
+  batchAssignReferrer,
+} from "@/app/actions/admin"
 import { toast } from "sonner"
 import {
   Combobox,
@@ -23,24 +27,30 @@ import {
 import type { Registration, Referrer } from "@/lib/supabase/types"
 
 interface AssignReferrerDialogProps {
-  registration: Registration
+  registration?: Registration
+  registrationIds?: string[]
   referrers: Referrer[]
-  onAssign: (updatedRegistration: Registration) => void
+  onAssign?: (updatedRegistration: Registration) => void
+  onBulkAssign?: () => void
   children: React.ReactNode
 }
 
 export function AssignReferrerDialog({
   registration,
+  registrationIds,
   referrers,
   onAssign,
+  onBulkAssign,
   children,
 }: AssignReferrerDialogProps) {
   const [open, setOpen] = useState(false)
   const [selectedReferrerId, setSelectedReferrerId] = useState(
-    registration.referrer_id || ""
+    registration?.referrer_id || ""
   )
   const [loading, setLoading] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
+
+  const isBulk = !!registrationIds && registrationIds.length > 0
 
   const filteredReferrers = referrers.filter((r) =>
     r.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -54,23 +64,31 @@ export function AssignReferrerDialog({
       const result = await createReferrer(searchTerm)
 
       if (result.success && "data" in result && result.data) {
-        // Assign the newly created referrer
-        const assignResult = await assignReferrer(
-          registration.id,
-          result.data.id
-        )
+        const referrerId = result.data.id
 
-        if (assignResult.success) {
-          const updatedRegistration = {
-            ...registration,
-            referrer_id: result.data.id,
-            referrer: result.data,
+        if (isBulk && registrationIds) {
+          const assignResult = await batchAssignReferrer(registrationIds, referrerId)
+          if (assignResult.success) {
+            toast.success(`Referrer "${searchTerm}" created and assigned to ${registrationIds.length} registration(s)`)
+            onBulkAssign?.()
+            setOpen(false)
+          } else {
+            toast.error("Failed to assign referrer")
           }
-          toast.success(`Referrer "${searchTerm}" created and assigned`)
-          onAssign(updatedRegistration)
-          setOpen(false)
-        } else {
-          toast.error("Failed to assign referrer")
+        } else if (registration) {
+          const assignResult = await assignReferrer(registration.id, referrerId)
+          if (assignResult.success) {
+            const updatedRegistration = {
+              ...registration,
+              referrer_id: referrerId,
+              referrer: result.data,
+            }
+            toast.success(`Referrer "${searchTerm}" created and assigned`)
+            onAssign?.(updatedRegistration)
+            setOpen(false)
+          } else {
+            toast.error("Failed to assign referrer")
+          }
         }
       } else if ("error" in result && result.error) {
         toast.error(result.error)
@@ -88,22 +106,32 @@ export function AssignReferrerDialog({
 
     setLoading(true)
     try {
-      const result = await assignReferrer(registration.id, selectedReferrerId)
-
-      if (result.success) {
-        const selectedReferrer = referrers.find(
-          (r) => r.id === selectedReferrerId
-        )
-        const updatedRegistration = {
-          ...registration,
-          referrer_id: selectedReferrerId,
-          referrer: selectedReferrer || null,
+      if (isBulk && registrationIds) {
+        const result = await batchAssignReferrer(registrationIds, selectedReferrerId)
+        if (result.success) {
+          toast.success("Referrer assigned to all selected registrations")
+          onBulkAssign?.()
+          setOpen(false)
+        } else if ("error" in result && result.error) {
+          toast.error(result.error)
         }
-        toast.success("Referrer assigned successfully")
-        onAssign(updatedRegistration)
-        setOpen(false)
-      } else if ("error" in result && result.error) {
-        toast.error(result.error)
+      } else if (registration) {
+        const result = await assignReferrer(registration.id, selectedReferrerId)
+        if (result.success) {
+          const selectedReferrer = referrers.find(
+            (r) => r.id === selectedReferrerId
+          )
+          const updatedRegistration = {
+            ...registration,
+            referrer_id: selectedReferrerId,
+            referrer: selectedReferrer || null,
+          }
+          toast.success("Referrer assigned successfully")
+          onAssign?.(updatedRegistration)
+          setOpen(false)
+        } else if ("error" in result && result.error) {
+          toast.error(result.error)
+        }
       }
     } catch (error) {
       toast.error("An error occurred")
@@ -127,8 +155,9 @@ export function AssignReferrerDialog({
         <div className="space-y-4 py-4">
           <div className="space-y-2">
             <p className="text-sm text-muted-foreground">
-              Assign a referrer to {registration.first_name}{" "}
-              {registration.last_name}
+              {isBulk
+                ? `Assign a referrer to ${registrationIds!.length} registration(s)`
+                : `Assign a referrer to ${registration!.first_name} ${registration!.last_name}`}
             </p>
 
             <Combobox

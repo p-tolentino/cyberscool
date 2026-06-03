@@ -5,6 +5,7 @@ import {
   ColumnDef,
   ColumnFiltersState,
   ColumnPinningState,
+  RowSelectionState,
   SortingState,
   VisibilityState,
   flexRender,
@@ -41,6 +42,12 @@ interface DataTableProps<TData, TValue> {
   searchPlaceholder?: string
   pageSize?: number
   pinnedColumns?: ColumnPinningState
+  getRowId?: (row: TData) => string
+  renderSelectedActions?: (props: {
+    selectedIds: string[]
+    selectedRows: TData[]
+    onClearSelection: () => void
+  }) => React.ReactNode
 }
 
 export function DataTable<TData, TValue>({
@@ -50,6 +57,8 @@ export function DataTable<TData, TValue>({
   searchPlaceholder = "Search...",
   pageSize = 10,
   pinnedColumns,
+  getRowId,
+  renderSelectedActions,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -57,12 +66,18 @@ export function DataTable<TData, TValue>({
   )
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({})
+  const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({})
 
   const table = useReactTable({
     data,
     columns,
+    getRowId:
+      getRowId ??
+      ((row: TData) => (row as Record<string, unknown>).id as string),
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
+    onRowSelectionChange: setRowSelection,
+    enableRowSelection: !!renderSelectedActions,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
@@ -72,6 +87,7 @@ export function DataTable<TData, TValue>({
       sorting,
       columnFilters,
       columnVisibility,
+      rowSelection,
     },
     initialState: {
       pagination: { pageSize },
@@ -79,23 +95,45 @@ export function DataTable<TData, TValue>({
     },
   })
 
+  const selectedIds = React.useMemo(() => {
+    return Object.keys(rowSelection).filter((id) => rowSelection[id])
+  }, [rowSelection])
+
+  const selectedRows = React.useMemo(() => {
+    return table.getSelectedRowModel().rows.map((r) => r.original)
+  }, [table, rowSelection, data])
+
+  const handleClearSelection = React.useCallback(() => {
+    setRowSelection({})
+  }, [])
+
   return (
     <div>
       <div className="flex items-center gap-4 py-4">
-        {searchKey && (
-          <div className="relative min-w-[40%] flex-1">
-            <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder={searchPlaceholder}
-              value={
-                (table.getColumn(searchKey)?.getFilterValue() as string) ?? ""
-              }
-              onChange={(event) =>
-                table.getColumn(searchKey)?.setFilterValue(event.target.value)
-              }
-              className="pl-9"
-            />
+        {selectedIds.length > 0 && renderSelectedActions ? (
+          <div className="flex w-full items-center gap-3">
+            {renderSelectedActions({
+              selectedIds,
+              selectedRows,
+              onClearSelection: handleClearSelection,
+            })}
           </div>
+        ) : (
+          searchKey && (
+            <div className="relative min-w-[40%] flex-1">
+              <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder={searchPlaceholder}
+                value={
+                  (table.getColumn(searchKey)?.getFilterValue() as string) ?? ""
+                }
+                onChange={(event) =>
+                  table.getColumn(searchKey)?.setFilterValue(event.target.value)
+                }
+                className="pl-9"
+              />
+            </div>
+          )
         )}
         <div className="flex-1" />
         <p className="text-sm whitespace-nowrap text-muted-foreground">

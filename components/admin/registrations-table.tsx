@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useMemo, useReducer } from "react"
 import { ColumnDef } from "@tanstack/react-table"
 import { DataTable } from "@/components/ui/data-table"
 import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,7 +32,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
-import { CalendarIcon } from "lucide-react"
+import { CalendarIcon, ChevronDown, Mail } from "lucide-react"
 import { Calendar } from "@/components/ui/calendar"
 import {
   Popover,
@@ -42,10 +43,15 @@ import {
   toggleEmailSent,
   toggleContacted,
   deleteRegistration,
+  sendNextStepEmail,
+  batchToggleEmailSent,
+  batchToggleContacted,
+  batchDeleteRegistrations,
 } from "@/app/actions/admin"
 
 import type { Registration, Referrer } from "@/lib/supabase/types"
 import {
+  Download,
   MoreHorizontal,
   Phone,
   Trash2,
@@ -56,6 +62,10 @@ import {
   GraduationCap,
   UserPlus,
   FilterX,
+  Send,
+  Clock,
+  CalendarDays,
+  Smartphone,
 } from "lucide-react"
 import { toast } from "sonner"
 import { format } from "date-fns"
@@ -489,8 +499,42 @@ export function RegistrationsTable({
     }
   }
 
+  // ── Send Next Step Email Dialog ─────────────────────
+
+  const [emailDialogOpen, setEmailDialogOpen] = useState(false)
+  const [emailTargetIds, setEmailTargetIds] = useState<string[]>([])
+  const [sendingEmail, setSendingEmail] = useState(false)
+  const [emailResult, setEmailResult] = useState<{
+    alreadySentIds: string[]
+  } | null>(null)
+
+  // ── Bulk Actions ─────────────────────────
+
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false)
+  const [bulkDeleteTargetIds, setBulkDeleteTargetIds] = useState<string[]>([])
+
   // ========== COLUMNS ==========
   const columns: ColumnDef<Registration>[] = [
+    {
+      id: "select",
+      header: ({ table }) => (
+        <Checkbox
+          checked={table.getIsAllPageRowsSelected()}
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label="Select all"
+        />
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label="Select row"
+        />
+      ),
+      enableSorting: false,
+      enableHiding: false,
+      meta: "Select",
+    },
     {
       id: "name",
       accessorFn: (row) => `${row.first_name} ${row.last_name}`,
@@ -553,6 +597,13 @@ export function RegistrationsTable({
           return (
             <span className="text-xs">
               Other: <span className="font-medium">{otherSource}</span>
+            </span>
+          )
+        }
+        if (heardFrom === "Friend or Acquaintance" && otherSource) {
+          return (
+            <span className="text-xs">
+              Friend: <span className="font-medium">{otherSource}</span>
             </span>
           )
         }
@@ -676,6 +727,59 @@ export function RegistrationsTable({
       },
     },
     {
+      accessorKey: "preferred_contact_method",
+      header: "Contact Method",
+      meta: "Contact Method",
+      cell: ({ row }) => {
+        const method = row.original.preferred_contact_method
+        if (!method)
+          return <span className="text-xs text-muted-foreground">—</span>
+        return (
+          <span className="inline-flex items-center gap-1 text-xs">
+            {method === "Phone" && (
+              <Smartphone className="size-3 text-muted-foreground" />
+            )}
+            {method === "Email" && (
+              <Mail className="size-3 text-muted-foreground" />
+            )}
+            {method}
+          </span>
+        )
+      },
+    },
+    {
+      accessorKey: "preferred_day",
+      header: "Preferred Day",
+      meta: "Preferred Day",
+      cell: ({ row }) => {
+        const day = row.original.preferred_day
+        if (!day)
+          return <span className="text-xs text-muted-foreground">—</span>
+        return (
+          <span className="inline-flex items-center gap-1 text-xs">
+            <CalendarDays className="size-3 text-muted-foreground" />
+            {day}
+          </span>
+        )
+      },
+    },
+    {
+      accessorKey: "preferred_time",
+      header: "Preferred Time",
+      meta: "Preferred Time",
+      cell: ({ row }) => {
+        const time = row.original.preferred_time
+        if (!time)
+          return <span className="text-xs text-muted-foreground">—</span>
+        return (
+          <span className="inline-flex items-center gap-1 text-xs">
+            <Clock className="size-3 text-muted-foreground" />
+            {time}
+          </span>
+        )
+      },
+    },
+    {
       id: "actions",
       enableHiding: false,
       meta: "Actions",
@@ -725,6 +829,18 @@ export function RegistrationsTable({
                 </DropdownMenuItem>
               </AssignReferrerDialog>
               <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.preventDefault()
+                  setEmailTargetIds([reg.id])
+                  setEmailResult(null)
+                  setEmailDialogOpen(true)
+                }}
+              >
+                <Send className="mr-2 size-4" />
+                Send Next Step Email
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <DropdownMenuItem
@@ -762,6 +878,159 @@ export function RegistrationsTable({
     },
   ]
 
+  const handleSendNextStepEmail = async () => {
+    if (emailTargetIds.length === 0) return
+    setSendingEmail(true)
+    try {
+      const result = (await sendNextStepEmail(emailTargetIds)) as {
+        success: boolean
+        error?: string | null
+        sentCount?: number
+        alreadySentIds?: string[]
+      }
+      if (result.success) {
+        setEmailResult({ alreadySentIds: result.alreadySentIds || [] })
+        setRegsState((prev) =>
+          prev.map((r) =>
+            emailTargetIds.includes(r.id) ? { ...r, email_sent: true } : r
+          )
+        )
+        if (result.alreadySentIds && result.alreadySentIds.length > 0) {
+          toast.success(
+            `Next Step email sent to ${result.sentCount} registration(s). ${result.alreadySentIds.length} already received it.`
+          )
+        } else {
+          toast.success(
+            `Next Step email sent to ${result.sentCount} registration(s)!`
+          )
+        }
+      } else {
+        toast.error(result.error || "Failed to send email.")
+      }
+    } catch {
+      toast.error("Something went wrong.")
+    } finally {
+      setSendingEmail(false)
+    }
+  }
+
+  const handleBulkEmailSent = async (ids: string[], selectedRows: Registration[]) => {
+    const allSent = selectedRows.every((r) => r.email_sent)
+    const setTo = !allSent
+    const result = await batchToggleEmailSent(ids, setTo)
+    if (result.success) {
+      setRegsState((prev) =>
+        prev.map((r) =>
+          ids.includes(r.id) ? { ...r, email_sent: setTo } : r
+        )
+      )
+      toast.success(`Email marked as ${setTo ? "sent" : "not sent"} for ${ids.length} registration(s)`)
+    } else {
+      toast.error("Failed to update email status")
+    }
+  }
+
+  const handleBulkContacted = async (ids: string[], selectedRows: Registration[]) => {
+    const allContacted = selectedRows.every((r) => r.contacted)
+    const setTo = !allContacted
+    const result = await batchToggleContacted(ids, setTo)
+    if (result.success) {
+      setRegsState((prev) =>
+        prev.map((r) =>
+          ids.includes(r.id) ? { ...r, contacted: setTo } : r
+        )
+      )
+      toast.success(`Marked as ${setTo ? "contacted" : "not contacted"} for ${ids.length} registration(s)`)
+    } else {
+      toast.error("Failed to update contact status")
+    }
+  }
+
+  const handleBulkDelete = async (ids: string[]) => {
+    const result = await batchDeleteRegistrations(ids)
+    if (result.success) {
+      setRegsState((prev) => prev.filter((r) => !ids.includes(r.id)))
+      toast.success(`${ids.length} registration(s) deleted`)
+      setBulkDeleteOpen(false)
+    } else {
+      toast.error("Failed to delete registrations")
+    }
+  }
+
+  // ── CSV Export ─────────────────────────
+
+  const exportToCSV = (data: Registration[]) => {
+    if (data.length === 0) {
+      toast.error("No data to export")
+      return
+    }
+
+    const headers = [
+      "Name",
+      "Email",
+      "Phone",
+      "Orientation Date",
+      "Lead Source",
+      "Other Source",
+      "Email Sent",
+      "Contacted",
+      "Registered At",
+      "Enrolled",
+      "Enrolled At",
+      "Referrer",
+      "Contact Method",
+      "Preferred Day",
+      "Preferred Time",
+    ]
+
+    const rows = data.map((r) => {
+      const esc = (v: string | null | undefined) => {
+        const s = v ?? ""
+        return s.includes(",") || s.includes('"') || s.includes("\n")
+          ? `"${s.replace(/"/g, '""')}"`
+          : s
+      }
+
+      return [
+        esc(`${r.first_name} ${r.last_name}`),
+        esc(r.email),
+        esc(r.phone),
+        esc(r.orientation_date ? format(new Date(r.orientation_date), "MMM d, yyyy h:mm aa") : ""),
+        esc(r.heard_from),
+        esc(r.other_source),
+        r.email_sent ? "Yes" : "No",
+        r.contacted ? "Yes" : "No",
+        esc(r.created_at ? format(new Date(r.created_at), "MMM d, yyyy h:mm aa") : ""),
+        r.is_enrolled ? "Yes" : "No",
+        esc(r.enrolled_at ? format(new Date(r.enrolled_at), "MMM d, yyyy") : ""),
+        esc(r.referrer?.name),
+        esc(r.preferred_contact_method),
+        esc(r.preferred_day),
+        esc(r.preferred_time),
+      ].join(",")
+    })
+
+    const csv = [headers.join(","), ...rows].join("\n")
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;", endings: "native" })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = `registrations-${format(new Date(), "yyyy-MM-dd")}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+    toast.success(`Exported ${data.length} registration(s)`)
+  }
+
+  const emailTargetRegs = useMemo(() => {
+    return regsState.filter((r) => emailTargetIds.includes(r.id))
+  }, [regsState, emailTargetIds])
+
+  const alreadySentNames = useMemo(() => {
+    return emailTargetRegs
+      .filter((r) => r.email_sent)
+      .map((r) => `${r.first_name} ${r.last_name}`)
+  }, [emailTargetRegs])
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -775,6 +1044,15 @@ export function RegistrationsTable({
 
         {/* Right side: compact filter controls with labels */}
         <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 gap-1"
+            onClick={() => exportToCSV(filteredRegistrations)}
+          >
+            <Download className="size-3.5" />
+            Export CSV
+          </Button>
           <Popover open={isFilterOpen} onOpenChange={setIsFilterOpen}>
             <PopoverTrigger asChild>
               <Button
@@ -811,8 +1089,247 @@ export function RegistrationsTable({
         searchKey="email"
         searchPlaceholder="Search..."
         pageSize={10}
-        pinnedColumns={{ left: ["name"] }}
+        pinnedColumns={{ left: ["select", "name"] }}
+        getRowId={(row) => row.id}
+        renderSelectedActions={({ selectedIds, selectedRows, onClearSelection }) => {
+          const allSent = selectedRows.every((r) => r.email_sent)
+          const allContacted = selectedRows.every((r) => r.contacted)
+          return (
+            <div className="flex w-full items-center gap-3">
+              <span className="text-sm whitespace-nowrap text-muted-foreground">
+                {selectedIds.length} selected
+              </span>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="default" size="sm" className="gap-1.5">
+                    Actions <ChevronDown className="size-3.5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-56">
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setEmailTargetIds(selectedIds)
+                      setEmailResult(null)
+                      setEmailDialogOpen(true)
+                    }}
+                  >
+                    <Send className="mr-2 size-4" />
+                    Send Next Step Email
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => handleBulkEmailSent(selectedIds, selectedRows)}
+                  >
+                    {allSent ? (
+                      <MailX className="mr-2 size-4" />
+                    ) : (
+                      <MailCheck className="mr-2 size-4" />
+                    )}
+                    {allSent ? "Mark Not Sent" : "Mark Sent"}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => handleBulkContacted(selectedIds, selectedRows)}
+                  >
+                    {allContacted ? (
+                      <Phone className="mr-2 size-4" />
+                    ) : (
+                      <PhoneCall className="mr-2 size-4" />
+                    )}
+                    {allContacted ? "Mark Not Contacted" : "Mark Contacted"}
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <AssignReferrerDialog
+                    registrationIds={selectedIds}
+                    referrers={referrers}
+                    onBulkAssign={() => {
+                      setRegsState((prev) => [...prev])
+                    }}
+                  >
+                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                      <UserPlus className="mr-2 size-4" />
+                      Assign Referrer
+                    </DropdownMenuItem>
+                  </AssignReferrerDialog>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    variant="destructive"
+                    onClick={() => {
+                      setBulkDeleteTargetIds(selectedIds)
+                      setBulkDeleteOpen(true)
+                    }}
+                  >
+                    <Trash2 className="mr-2 size-4" />
+                    Delete
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onClearSelection}
+                className="gap-1.5"
+              >
+                Clear selection
+              </Button>
+            </div>
+          )
+        }}
       />
+
+      {/* Bulk Delete Confirmation Dialog */}
+      <AlertDialog
+        open={bulkDeleteOpen}
+        onOpenChange={setBulkDeleteOpen}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Registrations?</AlertDialogTitle>
+            <AlertDialogDescription>
+              <div className="space-y-3">
+                <p>
+                  Are you sure you want to delete{" "}
+                  <strong>{bulkDeleteTargetIds.length}</strong> registration(s)?
+                  This action cannot be undone.
+                </p>
+                {bulkDeleteTargetIds.length > 0 && (
+                  <div className="rounded-md border bg-muted/30 p-3">
+                    <p className="mb-1 text-xs font-medium text-muted-foreground">
+                      Registrations:
+                    </p>
+                    <ul className="space-y-0.5 text-sm">
+                      {(() => {
+                        const targetRegs = regsState.filter((r) =>
+                          bulkDeleteTargetIds.includes(r.id)
+                        )
+                        return (
+                          <>
+                            {targetRegs.slice(0, 5).map((r) => (
+                              <li key={r.id}>
+                                {r.first_name} {r.last_name}
+                              </li>
+                            ))}
+                            {targetRegs.length > 5 && (
+                              <li className="text-muted-foreground">
+                                +{targetRegs.length - 5} more
+                              </li>
+                            )}
+                          </>
+                        )
+                      })()}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setBulkDeleteTargetIds([])}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              onClick={() => handleBulkDelete(bulkDeleteTargetIds)}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Send Next Step Email Confirmation Dialog */}
+      <AlertDialog
+        open={emailDialogOpen}
+        onOpenChange={(open) => {
+          if (!sendingEmail) {
+            setEmailDialogOpen(open)
+            if (!open) {
+              setEmailResult(null)
+              setEmailTargetIds([])
+            }
+          }
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {emailResult ? "Email Sent" : "Send Next Step Email?"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {emailResult ? (
+                <span>
+                  The Next Step email has been sent to {emailTargetIds.length}{" "}
+                  registration(s).
+                  {alreadySentNames.length > 0 && (
+                    <span className="mt-2 block text-amber-600">
+                      Note: The following already received this email:{" "}
+                      {alreadySentNames.join(", ")}.
+                    </span>
+                  )}
+                </span>
+              ) : (
+                <div className="space-y-3">
+                  <p>
+                    This will send the Next Step email to{" "}
+                    <strong>{emailTargetIds.length}</strong> registrant(s).
+                  </p>
+                  {emailTargetRegs.length > 0 && (
+                    <div className="rounded-md border bg-muted/30 p-3">
+                      <p className="mb-1 text-xs font-medium text-muted-foreground">
+                        Recipients:
+                      </p>
+                      <ul className="space-y-0.5 text-sm">
+                        {emailTargetRegs.slice(0, 5).map((r) => (
+                          <li key={r.id}>
+                            {r.first_name} {r.last_name} ({r.email})
+                          </li>
+                        ))}
+                        {emailTargetRegs.length > 5 && (
+                          <li className="text-muted-foreground">
+                            +{emailTargetRegs.length - 5} more
+                          </li>
+                        )}
+                      </ul>
+                    </div>
+                  )}
+                  {alreadySentNames.length > 0 && (
+                    <p className="text-sm text-amber-600">
+                      Warning: {alreadySentNames.length} of these already
+                      received the Next Step email.
+                    </p>
+                  )}
+                </div>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            {emailResult ? (
+              <AlertDialogAction
+                onClick={() => {
+                  setEmailDialogOpen(false)
+                  setEmailResult(null)
+                  setEmailTargetIds([])
+                }}
+              >
+                Done
+              </AlertDialogAction>
+            ) : (
+              <>
+                <AlertDialogCancel disabled={sendingEmail}>
+                  Cancel
+                </AlertDialogCancel>
+                <AlertDialogAction
+                  disabled={sendingEmail}
+                  onClick={(e) => {
+                    e.preventDefault()
+                    handleSendNextStepEmail()
+                  }}
+                >
+                  {sendingEmail ? "Sending..." : "Send Email"}
+                </AlertDialogAction>
+              </>
+            )}
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

@@ -3,6 +3,7 @@
 import JoinEmail from "@/components/email-template"
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
+import { normalizePhone } from "@/lib/phone"
 
 import { Resend } from "resend"
 
@@ -12,7 +13,7 @@ export async function registerForOrientation(formData: FormData) {
   const firstName = formData.get("firstName") as string
   const lastName = formData.get("lastName") as string
   const email = formData.get("email") as string
-  const phone = formData.get("phone") as string
+  const phone = normalizePhone(formData.get("phone") as string)
   const heardFrom = formData.get("heardFrom") as string
   const otherSource = formData.get("otherSource") as string | null
   const orientationDate = formData.get("orientationDate") as string

@@ -63,7 +63,7 @@ const orientationSchema = z
   })
   .superRefine((data, ctx) => {
     if (
-      data.heardFrom === "Other" &&
+      (data.heardFrom === "Other" || data.heardFrom === "Friend or Acquaintance") &&
       (!data.otherSource || data.otherSource.trim() === "")
     ) {
       ctx.addIssue({
@@ -436,7 +436,8 @@ export function OrientationForm({
                         <div
                           className={cn(
                             "overflow-hidden transition-all duration-300 ease-in-out",
-                            form.watch("heardFrom") === "Other"
+                            form.watch("heardFrom") === "Other" ||
+                              form.watch("heardFrom") === "Friend or Acquaintance"
                               ? "max-h-40 opacity-100"
                               : "max-h-0 opacity-0"
                           )}
@@ -448,12 +449,18 @@ export function OrientationForm({
                               <div className="pt-2">
                                 <Field>
                                   <FieldLabel>
-                                    Please specify{" "}
+                                    {form.watch("heardFrom") === "Friend or Acquaintance"
+                                      ? "Who referred you?"
+                                      : "Please specify"}{" "}
                                     <span className="text-destructive">*</span>
                                   </FieldLabel>
                                   <Input
                                     {...field}
-                                    placeholder="e.g., Podcast, Webinar..."
+                                    placeholder={
+                                      form.watch("heardFrom") === "Friend or Acquaintance"
+                                        ? "e.g., Juan Dela Cruz"
+                                        : "e.g., Podcast, Webinar..."
+                                    }
                                     disabled={
                                       isLoadingDates ||
                                       orientationDates.length === 0 ||

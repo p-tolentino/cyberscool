@@ -1,8 +1,12 @@
 "use server"
 
+import NextStepEmail from "@/components/email-templates/next-step"
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
 import { cookies } from "next/headers"
+import { Resend } from "resend"
+
+const resend = new Resend(process.env.RESEND_API_KEY)
 
 // --- Auth ---
 
@@ -127,14 +131,12 @@ export async function createOrientationDate(formData: FormData) {
   const date = formData.get("date") as string
   const zoomLink = formData.get("zoom_link") as string | null
 
-  const { error } = await supabase
-    .from("orientation_dates")
-    .insert({
-      label,
-      value: date,
-      is_active: true,
-      zoom_link: zoomLink || null,
-    })
+  const { error } = await supabase.from("orientation_dates").insert({
+    label,
+    value: date,
+    is_active: true,
+    zoom_link: zoomLink || null,
+  })
 
   if (error) return { success: false, error: error.message }
   revalidatePath("/admin")
@@ -239,6 +241,123 @@ export async function assignReferrer(
     .from("orientation_registrations")
     .update({ referrer_id: referrerId })
     .eq("id", registrationId)
+
+  if (error) return { success: false, error: error.message }
+  revalidatePath("/admin")
+  return { success: true, error: "" }
+}
+
+export async function sendNextStepEmail(registrationIds: string[]) {
+  const unauth = await requireAdmin()
+  if (unauth) return unauth
+
+  const supabase = await createClient()
+
+  const { data: registrations, error } = await supabase
+    .from("orientation_registrations")
+    .select("id, first_name, email, email_sent")
+    .in("id", registrationIds)
+
+  if (error) return { success: false, error: error.message }
+  if (!registrations || registrations.length === 0)
+    return { success: false, error: "No registrations found." }
+
+  const alreadySent = registrations.filter((r) => r.email_sent)
+  const toSend = registrations.filter((r) => !r.email_sent)
+
+  if (toSend.length === 0) {
+    return {
+      success: false,
+      error:
+        "Next Step email has already been sent to all selected registrations.",
+      alreadySentIds: alreadySent.map((r) => r.id),
+    }
+  }
+
+  const bccAddresses = toSend.map((r) => r.email)
+
+  const { error: sendError } = await resend.emails.send({
+    from: process.env.EMAIL_FROM!,
+    to: [],
+    bcc: bccAddresses,
+    subject: "Your Next Step in Cybersecurity",
+    react: NextStepEmail(),
+  })
+
+  if (sendError) return { success: false, error: sendError.message }
+
+  const { error: updateError } = await supabase
+    .from("orientation_registrations")
+    .update({ email_sent: true })
+    .in(
+      "id",
+      toSend.map((r) => r.id)
+    )
+
+  if (updateError) return { success: false, error: updateError.message }
+
+  revalidatePath("/admin")
+  return {
+    success: true,
+    error: null,
+    sentCount: toSend.length,
+    alreadySentIds: alreadySent.map((r) => r.id),
+  }
+}
+
+export async function batchToggleEmailSent(ids: string[], setTo: boolean) {
+  const unauth = await requireAdmin()
+  if (unauth) return unauth
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from("orientation_registrations")
+    .update({ email_sent: setTo })
+    .in("id", ids)
+
+  if (error) return { success: false, error: error.message }
+  revalidatePath("/admin")
+  return { success: true, error: "" }
+}
+
+export async function batchToggleContacted(ids: string[], setTo: boolean) {
+  const unauth = await requireAdmin()
+  if (unauth) return unauth
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from("orientation_registrations")
+    .update({ contacted: setTo })
+    .in("id", ids)
+
+  if (error) return { success: false, error: error.message }
+  revalidatePath("/admin")
+  return { success: true, error: "" }
+}
+
+export async function batchDeleteRegistrations(ids: string[]) {
+  const unauth = await requireAdmin()
+  if (unauth) return unauth
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from("orientation_registrations")
+    .delete()
+    .in("id", ids)
+
+  if (error) return { success: false, error: error.message }
+  revalidatePath("/admin")
+  return { success: true, error: "" }
+}
+
+export async function batchAssignReferrer(
+  ids: string[],
+  referrerId: string | null
+) {
+  const unauth = await requireAdmin()
+  if (unauth) return unauth
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from("orientation_registrations")
+    .update({ referrer_id: referrerId })
+    .in("id", ids)
 
   if (error) return { success: false, error: error.message }
   revalidatePath("/admin")

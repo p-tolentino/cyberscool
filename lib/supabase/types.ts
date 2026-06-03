@@ -31,4 +31,7 @@ export interface Registration {
   referrer_id: string | null
   referrer?: Referrer | null
   created_at: string
+  preferred_contact_method: string | null
+  preferred_day: string | null
+  preferred_time: string | null
 }
