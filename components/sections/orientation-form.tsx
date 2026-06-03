@@ -23,7 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { toast } from "sonner"
-import { useCallback, useState } from "react"
+import { useState } from "react"
 import { registerForOrientation } from "@/app/actions/orientation"
 import { cn } from "@/lib/utils"
 import { Skeleton } from "../ui/skeleton"
@@ -63,7 +63,8 @@ const orientationSchema = z
   })
   .superRefine((data, ctx) => {
     if (
-      (data.heardFrom === "Other" || data.heardFrom === "Friend or Acquaintance") &&
+      (data.heardFrom === "Other" ||
+        data.heardFrom === "Friend or Acquaintance") &&
       (!data.otherSource || data.otherSource.trim() === "")
     ) {
       ctx.addIssue({
@@ -437,7 +438,8 @@ export function OrientationForm({
                           className={cn(
                             "overflow-hidden transition-all duration-300 ease-in-out",
                             form.watch("heardFrom") === "Other" ||
-                              form.watch("heardFrom") === "Friend or Acquaintance"
+                              form.watch("heardFrom") ===
+                                "Friend or Acquaintance"
                               ? "max-h-40 opacity-100"
                               : "max-h-0 opacity-0"
                           )}
@@ -449,7 +451,8 @@ export function OrientationForm({
                               <div className="pt-2">
                                 <Field>
                                   <FieldLabel>
-                                    {form.watch("heardFrom") === "Friend or Acquaintance"
+                                    {form.watch("heardFrom") ===
+                                    "Friend or Acquaintance"
                                       ? "Who referred you?"
                                       : "Please specify"}{" "}
                                     <span className="text-destructive">*</span>
@@ -457,7 +460,8 @@ export function OrientationForm({
                                   <Input
                                     {...field}
                                     placeholder={
-                                      form.watch("heardFrom") === "Friend or Acquaintance"
+                                      form.watch("heardFrom") ===
+                                      "Friend or Acquaintance"
                                         ? "e.g., Juan Dela Cruz"
                                         : "e.g., Podcast, Webinar..."
                                     }

@@ -22,14 +22,16 @@ const baseUrl = process.env.NEXT_PUBLIC_URL
   ? `https://${process.env.NEXT_PUBLIC_URL}`
   : "https://cyberscool.vercel.app"
 
-export const NextStepEmail = () => (
+export const NextStepEmail = ({
+  firstName,
+}: { firstName?: string }) => (
   <Tailwind config={cybersCoolBoxedTailwindConfig}>
     <Html>
       <Head>
         <CybersCoolFonts />
       </Head>
       <Body className="bg-grayLight m-0 text-center font-sans">
-        <Preview>We&apos;re almost there!</Preview>
+        <Preview>We&apos;re almost there{firstName ? `, ${firstName}` : ""}!</Preview>
         <Container className="mobile:mt-0 mx-auto mt-8 w-full max-w-160">
           <Section>
             <Section className="mobile:px-2 bg-white px-6 py-4">
@@ -64,12 +66,12 @@ export const NextStepEmail = () => (
                     className="mx-auto mb-5 block"
                   />
                   <Heading as="h1" className="font-28 m-0 font-sans text-black">
-                    We&apos;re almost there!
+                    We&apos;re almost there{firstName ? `, ${firstName}` : ""}!
                   </Heading>
                 </Section>
 
                 <Text className="font-16 text-grayDark mx-auto mt-0 mb-8 max-w-95">
-                  Thank you for attending our career orientation session.
+                  Thank you for attending our career preview.
                   <br />
                   <br />
                   We&apos;d love to help you take the next step in your
@@ -84,7 +86,7 @@ export const NextStepEmail = () => (
                 <Section className="mb-6 text-center">
                   <Button
                     href="https://cyberscoolph.com/consult"
-                    className="font-16 to from-brandPurple via-brandPurple/80 to-brandTeal inline-block rounded-lg bg-linear-to-br px-7 py-4 text-white"
+                    className="font-16 to from-brandPurple via-brandPurple/80 to-brandTeal inline-block rounded-lg bg-linear-to-br px-7 py-4 text-white dark:text-white"
                   >
                     Set Your Contact Preferences
                   </Button>

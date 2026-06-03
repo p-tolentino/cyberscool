@@ -897,11 +897,11 @@ export function RegistrationsTable({
         )
         if (result.alreadySentIds && result.alreadySentIds.length > 0) {
           toast.success(
-            `Next Step email sent to ${result.sentCount} registration(s). ${result.alreadySentIds.length} already received it.`
+            `Next Step email sent to ${result.sentCount} attendee(s). ${result.alreadySentIds.length} already received it.`
           )
         } else {
           toast.success(
-            `Next Step email sent to ${result.sentCount} registration(s)!`
+            `Next Step email sent to ${result.sentCount} attendee(s)!`
           )
         }
       } else {
@@ -914,33 +914,39 @@ export function RegistrationsTable({
     }
   }
 
-  const handleBulkEmailSent = async (ids: string[], selectedRows: Registration[]) => {
+  const handleBulkEmailSent = async (
+    ids: string[],
+    selectedRows: Registration[]
+  ) => {
     const allSent = selectedRows.every((r) => r.email_sent)
     const setTo = !allSent
     const result = await batchToggleEmailSent(ids, setTo)
     if (result.success) {
       setRegsState((prev) =>
-        prev.map((r) =>
-          ids.includes(r.id) ? { ...r, email_sent: setTo } : r
-        )
+        prev.map((r) => (ids.includes(r.id) ? { ...r, email_sent: setTo } : r))
       )
-      toast.success(`Email marked as ${setTo ? "sent" : "not sent"} for ${ids.length} registration(s)`)
+      toast.success(
+        `Email marked as ${setTo ? "sent" : "not sent"} for ${ids.length} registration(s)`
+      )
     } else {
       toast.error("Failed to update email status")
     }
   }
 
-  const handleBulkContacted = async (ids: string[], selectedRows: Registration[]) => {
+  const handleBulkContacted = async (
+    ids: string[],
+    selectedRows: Registration[]
+  ) => {
     const allContacted = selectedRows.every((r) => r.contacted)
     const setTo = !allContacted
     const result = await batchToggleContacted(ids, setTo)
     if (result.success) {
       setRegsState((prev) =>
-        prev.map((r) =>
-          ids.includes(r.id) ? { ...r, contacted: setTo } : r
-        )
+        prev.map((r) => (ids.includes(r.id) ? { ...r, contacted: setTo } : r))
       )
-      toast.success(`Marked as ${setTo ? "contacted" : "not contacted"} for ${ids.length} registration(s)`)
+      toast.success(
+        `Marked as ${setTo ? "contacted" : "not contacted"} for ${ids.length} registration(s)`
+      )
     } else {
       toast.error("Failed to update contact status")
     }
@@ -995,14 +1001,24 @@ export function RegistrationsTable({
         esc(`${r.first_name} ${r.last_name}`),
         esc(r.email),
         esc(r.phone),
-        esc(r.orientation_date ? format(new Date(r.orientation_date), "MMM d, yyyy h:mm aa") : ""),
+        esc(
+          r.orientation_date
+            ? format(new Date(r.orientation_date), "MMM d, yyyy h:mm aa")
+            : ""
+        ),
         esc(r.heard_from),
         esc(r.other_source),
         r.email_sent ? "Yes" : "No",
         r.contacted ? "Yes" : "No",
-        esc(r.created_at ? format(new Date(r.created_at), "MMM d, yyyy h:mm aa") : ""),
+        esc(
+          r.created_at
+            ? format(new Date(r.created_at), "MMM d, yyyy h:mm aa")
+            : ""
+        ),
         r.is_enrolled ? "Yes" : "No",
-        esc(r.enrolled_at ? format(new Date(r.enrolled_at), "MMM d, yyyy") : ""),
+        esc(
+          r.enrolled_at ? format(new Date(r.enrolled_at), "MMM d, yyyy") : ""
+        ),
         esc(r.referrer?.name),
         esc(r.preferred_contact_method),
         esc(r.preferred_day),
@@ -1011,7 +1027,10 @@ export function RegistrationsTable({
     })
 
     const csv = [headers.join(","), ...rows].join("\n")
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;", endings: "native" })
+    const blob = new Blob([csv], {
+      type: "text/csv;charset=utf-8;",
+      endings: "native",
+    })
     const url = URL.createObjectURL(blob)
     const a = document.createElement("a")
     a.href = url
@@ -1091,7 +1110,11 @@ export function RegistrationsTable({
         pageSize={10}
         pinnedColumns={{ left: ["select", "name"] }}
         getRowId={(row) => row.id}
-        renderSelectedActions={({ selectedIds, selectedRows, onClearSelection }) => {
+        renderSelectedActions={({
+          selectedIds,
+          selectedRows,
+          onClearSelection,
+        }) => {
           const allSent = selectedRows.every((r) => r.email_sent)
           const allContacted = selectedRows.every((r) => r.contacted)
           return (
@@ -1117,7 +1140,9 @@ export function RegistrationsTable({
                     Send Next Step Email
                   </DropdownMenuItem>
                   <DropdownMenuItem
-                    onClick={() => handleBulkEmailSent(selectedIds, selectedRows)}
+                    onClick={() =>
+                      handleBulkEmailSent(selectedIds, selectedRows)
+                    }
                   >
                     {allSent ? (
                       <MailX className="mr-2 size-4" />
@@ -1127,7 +1152,9 @@ export function RegistrationsTable({
                     {allSent ? "Mark Not Sent" : "Mark Sent"}
                   </DropdownMenuItem>
                   <DropdownMenuItem
-                    onClick={() => handleBulkContacted(selectedIds, selectedRows)}
+                    onClick={() =>
+                      handleBulkContacted(selectedIds, selectedRows)
+                    }
                   >
                     {allContacted ? (
                       <Phone className="mr-2 size-4" />
@@ -1176,15 +1203,12 @@ export function RegistrationsTable({
       />
 
       {/* Bulk Delete Confirmation Dialog */}
-      <AlertDialog
-        open={bulkDeleteOpen}
-        onOpenChange={setBulkDeleteOpen}
-      >
+      <AlertDialog open={bulkDeleteOpen} onOpenChange={setBulkDeleteOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Registrations?</AlertDialogTitle>
             <AlertDialogDescription>
-              <div className="space-y-3">
+              <p className="space-y-3">
                 <p>
                   Are you sure you want to delete{" "}
                   <strong>{bulkDeleteTargetIds.length}</strong> registration(s)?
@@ -1218,7 +1242,7 @@ export function RegistrationsTable({
                     </ul>
                   </div>
                 )}
-              </div>
+              </p>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -1257,22 +1281,22 @@ export function RegistrationsTable({
               {emailResult ? (
                 <span>
                   The Next Step email has been sent to {emailTargetIds.length}{" "}
-                  registration(s).
+                  attendee{emailTargetIds.length !== 1 ? "s" : ""}:
                   {alreadySentNames.length > 0 && (
                     <span className="mt-2 block text-amber-600">
-                      Note: The following already received this email:{" "}
-                      {alreadySentNames.join(", ")}.
+                      {alreadySentNames.join(", ")}
                     </span>
                   )}
                 </span>
               ) : (
-                <div className="space-y-3">
-                  <p>
+                <p className="space-y-3">
+                  <span>
                     This will send the Next Step email to{" "}
-                    <strong>{emailTargetIds.length}</strong> registrant(s).
-                  </p>
+                    <strong>{emailTargetIds.length}</strong> attendee
+                    {emailTargetIds.length !== 1 ? "s" : ""}.
+                  </span>
                   {emailTargetRegs.length > 0 && (
-                    <div className="rounded-md border bg-muted/30 p-3">
+                    <div className="mt-2 rounded-md border bg-muted/30 p-3">
                       <p className="mb-1 text-xs font-medium text-muted-foreground">
                         Recipients:
                       </p>
@@ -1296,7 +1320,7 @@ export function RegistrationsTable({
                       received the Next Step email.
                     </p>
                   )}
-                </div>
+                </p>
               )}
             </AlertDialogDescription>
           </AlertDialogHeader>

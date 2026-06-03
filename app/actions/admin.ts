@@ -274,33 +274,45 @@ export async function sendNextStepEmail(registrationIds: string[]) {
     }
   }
 
-  const bccAddresses = toSend.map((r) => r.email)
+  const sentIds: string[] = []
+  const errors: { email: string; error: string }[] = []
 
-  const { error: sendError } = await resend.emails.send({
-    from: process.env.EMAIL_FROM!,
-    to: [],
-    bcc: bccAddresses,
-    subject: "Your Next Step in Cybersecurity",
-    react: NextStepEmail(),
-  })
+  for (const r of toSend) {
+    const { error: sendError } = await resend.emails.send({
+      from: process.env.EMAIL_FROM!,
+      to: [r.email],
+      subject: `Your Next Steps in Cybersecurity`,
+      react: NextStepEmail({ firstName: r.first_name }),
+    })
+    if (sendError) {
+      errors.push({ email: r.email, error: sendError.message })
+    } else {
+      sentIds.push(r.id)
+    }
+  }
 
-  if (sendError) return { success: false, error: sendError.message }
-
-  const { error: updateError } = await supabase
-    .from("orientation_registrations")
-    .update({ email_sent: true })
-    .in(
-      "id",
-      toSend.map((r) => r.id)
-    )
-
-  if (updateError) return { success: false, error: updateError.message }
+  if (sentIds.length > 0) {
+    await supabase
+      .from("orientation_registrations")
+      .update({ email_sent: true })
+      .in("id", sentIds)
+  }
 
   revalidatePath("/admin")
+
+  if (errors.length > 0) {
+    return {
+      success: sentIds.length > 0,
+      error: `Sent ${sentIds.length}/${toSend.length}. Failed: ${errors.map((e) => `${e.email} (${e.error})`).join(", ")}`,
+      sentCount: sentIds.length,
+      alreadySentIds: alreadySent.map((r) => r.id),
+    }
+  }
+
   return {
     success: true,
     error: null,
-    sentCount: toSend.length,
+    sentCount: sentIds.length,
     alreadySentIds: alreadySent.map((r) => r.id),
   }
 }

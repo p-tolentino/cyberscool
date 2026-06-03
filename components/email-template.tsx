@@ -217,7 +217,7 @@ export const JoinEmail = ({
                 <Section className="mb-6 text-center">
                   <Button
                     href={zoomUrl}
-                    className="font-16 to from-brandPurple via-brandPurple/80 to-brandTeal inline-block rounded-lg bg-linear-to-br px-7 py-4 text-white"
+                    className="font-16 to from-brandPurple via-brandPurple/80 to-brandTeal inline-block rounded-lg bg-linear-to-br px-7 py-4 text-white dark:text-white"
                   >
                     Join Zoom Meeting
                   </Button>
