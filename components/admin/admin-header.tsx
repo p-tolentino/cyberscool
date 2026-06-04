@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { useRouter, usePathname } from "next/navigation"
 import { adminLogout } from "@/app/actions/admin"
-import { ChevronRight, LayoutDashboard, Mail, LogOut } from "lucide-react"
+import { ChevronRight, LayoutDashboard, Mail, LogOut, Menu } from "lucide-react"
 import Image from "next/image"
 import { AnimatedThemeToggler } from "../ui/animated-theme-toggler"
 import {
@@ -65,7 +65,7 @@ export function AdminHeader() {
                   </AvatarFallback>
                 </Avatar>
                 <span className="hidden text-sm font-medium sm:inline">
-                  Admin
+                  <Menu className="size-4" />
                 </span>
               </button>
             </DropdownMenuTrigger>
@@ -98,10 +98,7 @@ export function AdminHeader() {
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={handleLogout}
-                variant="destructive"
-              >
+              <DropdownMenuItem onClick={handleLogout} variant="destructive">
                 <LogOut className="mr-2 size-4" />
                 Sign Out
               </DropdownMenuItem>
