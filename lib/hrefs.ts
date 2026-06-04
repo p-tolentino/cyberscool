@@ -15,7 +15,7 @@ export const data = () => ({
       { name: "FAQs", href: "/#faq" },
     ],
     contact: [
-      { name: "Leave a Message", href: "mailto:inquiry@cyberscoolph.com" },
+      { name: "Leave a Message", href: "mailto:sales@cyberscooldefcon.com" },
       { name: "Reserve My Free Seat", href: "/#orientation-form" },
       { name: "(+63) 920 947 6628", href: "tel:+639209476628" },
       { name: "(+63) 998 981 1628", href: "tel:+639989811628" },
