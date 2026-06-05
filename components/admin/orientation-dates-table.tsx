@@ -109,7 +109,7 @@ function CreateDatePopover({
       </PopoverTrigger>
       <PopoverContent
         className="w-auto gap-4 p-0 pt-4"
-        align="start"
+        align="center"
         side="bottom"
       >
         <div className="space-y-2 px-4">

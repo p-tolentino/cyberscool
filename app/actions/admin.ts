@@ -427,8 +427,13 @@ export async function sendReminderEmail(registrationIds: string[]) {
     } else if (diffDays <= 7) {
       reminderText = `See you in ${diffDays} days`
     } else {
-      const weeks = Math.ceil(diffDays / 7)
-      reminderText = `See you in ${weeks} week${weeks > 1 ? "s" : ""}`
+      const weeks = Math.floor(diffDays / 7)
+      const remainingDays = diffDays % 7
+      if (remainingDays === 0) {
+        reminderText = `See you in ${weeks} week${weeks > 1 ? "s" : ""}`
+      } else {
+        reminderText = `See you in ${weeks} week${weeks > 1 ? "s" : ""} and ${remainingDays} day${remainingDays > 1 ? "s" : ""}`
+      }
     }
 
     const zoomLink =
