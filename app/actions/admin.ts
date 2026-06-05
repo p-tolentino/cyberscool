@@ -388,12 +388,14 @@ export async function sendReminderEmail(registrationIds: string[]) {
 
   const { data: dates } = await supabase
     .from("orientation_dates")
-    .select("value, zoom_link")
+    .select("value, label, zoom_link")
 
   const zoomMap = new Map<string, string>()
+  const labelMap = new Map<string, string>()
   if (dates) {
     for (const d of dates) {
       if (d.zoom_link) zoomMap.set(d.value, d.zoom_link)
+      if (d.label) labelMap.set(d.value, d.label)
     }
   }
 
@@ -438,11 +440,14 @@ export async function sendReminderEmail(registrationIds: string[]) {
 
     const zoomLink =
       zoomMap.get(r.orientation_date) || "https://cyberscoolph.com/consult"
-
-    const formattedDate = new Intl.DateTimeFormat("en-US", {
-      dateStyle: "full",
-      timeStyle: "short",
-    }).format(orientationDate)
+    const orientationLabel = labelMap.get(r.orientation_date)
+    if (!orientationLabel) {
+      errors.push({
+        email: r.email,
+        error: `No orientation date label found for ${r.orientation_date}`,
+      })
+      continue
+    }
 
     const { error: sendError } = await resend.emails.send({
       from: process.env.EMAIL_FROM!,
@@ -451,7 +456,7 @@ export async function sendReminderEmail(registrationIds: string[]) {
       react: ReminderEmail({
         firstName: r.first_name,
         reminderText,
-        orientationDate: formattedDate,
+        orientationDate: orientationLabel,
         zoomLink,
       }),
     })
@@ -517,12 +522,14 @@ export async function sendSingleReminderEmail(registrationId: string) {
 
   const { data: dates } = await supabase
     .from("orientation_dates")
-    .select("value, zoom_link")
+    .select("value, label, zoom_link")
 
   const zoomMap = new Map<string, string>()
+  const labelMap = new Map<string, string>()
   if (dates) {
     for (const d of dates) {
       if (d.zoom_link) zoomMap.set(d.value, d.zoom_link)
+      if (d.label) labelMap.set(d.value, d.label)
     }
   }
 
@@ -535,17 +542,25 @@ export async function sendSingleReminderEmail(registrationId: string) {
   } else if (diffDays <= 7) {
     reminderText = `See you in ${diffDays} days`
   } else {
-    const weeks = Math.ceil(diffDays / 7)
-    reminderText = `See you in ${weeks} week${weeks > 1 ? "s" : ""}`
+    const weeks = Math.floor(diffDays / 7)
+    const remainingDays = diffDays % 7
+    if (remainingDays === 0) {
+      reminderText = `See you in ${weeks} week${weeks > 1 ? "s" : ""}`
+    } else {
+      reminderText = `See you in ${weeks} week${weeks > 1 ? "s" : ""} and ${remainingDays} day${remainingDays > 1 ? "s" : ""}`
+    }
   }
 
   const zoomLink =
     zoomMap.get(reg.orientation_date) || "https://cyberscoolph.com/consult"
-
-  const formattedDate = new Intl.DateTimeFormat("en-US", {
-    dateStyle: "full",
-    timeStyle: "short",
-  }).format(orientationDate)
+  const orientationLabel = labelMap.get(reg.orientation_date)
+  if (!orientationLabel) {
+    return {
+      success: false,
+      error: `No orientation date label found for ${reg.orientation_date}.`,
+      id: registrationId,
+    }
+  }
 
   let sendError: ResendErrorResponse | null = null
   for (let attempt = 0; attempt < 2; attempt++) {
@@ -556,7 +571,7 @@ export async function sendSingleReminderEmail(registrationId: string) {
       react: ReminderEmail({
         firstName: reg.first_name,
         reminderText,
-        orientationDate: formattedDate,
+        orientationDate: orientationLabel,
         zoomLink,
       }),
     })
