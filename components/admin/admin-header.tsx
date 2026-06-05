@@ -3,7 +3,13 @@
 import Link from "next/link"
 import { useRouter, usePathname } from "next/navigation"
 import { adminLogout } from "@/app/actions/admin"
-import { ChevronRight, LayoutDashboard, Mail, LogOut, Menu } from "lucide-react"
+import {
+  ChevronRight,
+  LayoutDashboard,
+  Mail,
+  LogOut,
+  ChevronDown,
+} from "lucide-react"
 import Image from "next/image"
 import { AnimatedThemeToggler } from "../ui/animated-theme-toggler"
 import {
@@ -65,7 +71,7 @@ export function AdminHeader() {
                   </AvatarFallback>
                 </Avatar>
                 <span className="hidden text-sm font-medium sm:inline">
-                  <Menu className="size-4" />
+                  <ChevronDown className="size-4" />
                 </span>
               </button>
             </DropdownMenuTrigger>

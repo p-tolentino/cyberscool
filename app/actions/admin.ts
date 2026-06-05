@@ -1,6 +1,7 @@
 "use server"
 
 import NextStepEmail from "@/components/email-templates/next-step"
+import ReminderEmail from "@/components/email-templates/reminder-email"
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
 import { cookies } from "next/headers"
@@ -314,6 +315,110 @@ export async function sendNextStepEmail(registrationIds: string[]) {
     error: null,
     sentCount: sentIds.length,
     alreadySentIds: alreadySent.map((r) => r.id),
+  }
+}
+
+export async function sendReminderEmail(registrationIds: string[]) {
+  const unauth = await requireAdmin()
+  if (unauth) return unauth
+
+  const supabase = await createClient()
+
+  const { data: registrations, error } = await supabase
+    .from("orientation_registrations")
+    .select("id, first_name, email, orientation_date")
+    .in("id", registrationIds)
+
+  if (error) return { success: false, error: error.message }
+  if (!registrations || registrations.length === 0)
+    return { success: false, error: "No registrations found." }
+
+  const { data: dates } = await supabase
+    .from("orientation_dates")
+    .select("value, zoom_link")
+
+  const zoomMap = new Map<string, string>()
+  if (dates) {
+    for (const d of dates) {
+      if (d.zoom_link) zoomMap.set(d.value, d.zoom_link)
+    }
+  }
+
+  const sentIds: string[] = []
+  const errors: { email: string; error: string }[] = []
+  const skippedIds: string[] = []
+
+  for (const r of registrations) {
+    if (!r.orientation_date) {
+      skippedIds.push(r.id)
+      continue
+    }
+
+    const orientationDate = new Date(r.orientation_date)
+    const now = new Date()
+
+    if (orientationDate <= now) {
+      errors.push({
+        email: r.email,
+        error: `Orientation date (${r.orientation_date}) has already passed`,
+      })
+      continue
+    }
+
+    const diffMs = orientationDate.getTime() - now.getTime()
+    const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24))
+
+    let reminderText: string
+    if (diffDays <= 1) {
+      reminderText = "See you tomorrow"
+    } else if (diffDays <= 7) {
+      reminderText = `See you in ${diffDays} days`
+    } else {
+      const weeks = Math.ceil(diffDays / 7)
+      reminderText = `See you in ${weeks} week${weeks > 1 ? "s" : ""}`
+    }
+
+    const zoomLink =
+      zoomMap.get(r.orientation_date) || "https://cyberscoolph.com/consult"
+
+    const formattedDate = new Intl.DateTimeFormat("en-US", {
+      dateStyle: "full",
+      timeStyle: "short",
+    }).format(orientationDate)
+
+    const { error: sendError } = await resend.emails.send({
+      from: process.env.EMAIL_FROM!,
+      to: [r.email],
+      subject: `${reminderText}, ${r.first_name}!`,
+      react: ReminderEmail({
+        firstName: r.first_name,
+        reminderText,
+        orientationDate: formattedDate,
+        zoomLink,
+      }),
+    })
+
+    if (sendError) {
+      errors.push({ email: r.email, error: sendError.message })
+    } else {
+      sentIds.push(r.id)
+    }
+  }
+
+  revalidatePath("/admin")
+
+  if (errors.length > 0) {
+    return {
+      success: sentIds.length > 0,
+      error: `Sent ${sentIds.length}/${registrations.length - skippedIds.length}. Failed: ${errors.map((e) => `${e.email} (${e.error})`).join(", ")}`,
+      sentCount: sentIds.length,
+    }
+  }
+
+  return {
+    success: true,
+    error: null,
+    sentCount: sentIds.length,
   }
 }
 

@@ -44,6 +44,7 @@ import {
   toggleContacted,
   deleteRegistration,
   sendNextStepEmail,
+  sendReminderEmail,
   batchToggleEmailSent,
   batchToggleContacted,
   batchDeleteRegistrations,
@@ -66,6 +67,7 @@ import {
   Clock,
   CalendarDays,
   Smartphone,
+  CalendarClock,
 } from "lucide-react"
 import { toast } from "sonner"
 import { format } from "date-fns"
@@ -508,6 +510,17 @@ export function RegistrationsTable({
     alreadySentIds: string[]
   } | null>(null)
 
+  // ── Send Reminder Email Dialog ─────────────────────
+
+  const [reminderEmailDialogOpen, setReminderEmailDialogOpen] = useState(false)
+  const [reminderEmailTargetIds, setReminderEmailTargetIds] = useState<
+    string[]
+  >([])
+  const [sendingReminderEmail, setSendingReminderEmail] = useState(false)
+  const [reminderEmailResult, setReminderEmailResult] = useState<{
+    sentCount: number
+  } | null>(null)
+
   // ── Bulk Actions ─────────────────────────
 
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false)
@@ -840,6 +853,17 @@ export function RegistrationsTable({
                 <Send className="mr-2 size-4" />
                 Send Next Step Email
               </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.preventDefault()
+                  setReminderEmailTargetIds([reg.id])
+                  setReminderEmailResult(null)
+                  setReminderEmailDialogOpen(true)
+                }}
+              >
+                <CalendarClock className="mr-2 size-4" />
+                Send Reminder Email
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <AlertDialog>
                 <AlertDialogTrigger asChild>
@@ -911,6 +935,28 @@ export function RegistrationsTable({
       toast.error("Something went wrong.")
     } finally {
       setSendingEmail(false)
+    }
+  }
+
+  const handleSendReminderEmail = async () => {
+    if (reminderEmailTargetIds.length === 0) return
+    setSendingReminderEmail(true)
+    try {
+      const result = (await sendReminderEmail(reminderEmailTargetIds)) as {
+        success: boolean
+        error?: string | null
+        sentCount?: number
+      }
+      if (result.success) {
+        setReminderEmailResult({ sentCount: result.sentCount || 0 })
+        toast.success(`Reminder email sent to ${result.sentCount} attendee(s)!`)
+      } else {
+        toast.error(result.error || "Failed to send reminder email.")
+      }
+    } catch {
+      toast.error("Something went wrong.")
+    } finally {
+      setSendingReminderEmail(false)
     }
   }
 
@@ -1140,6 +1186,16 @@ export function RegistrationsTable({
                     Send Next Step Email
                   </DropdownMenuItem>
                   <DropdownMenuItem
+                    onClick={() => {
+                      setReminderEmailTargetIds(selectedIds)
+                      setReminderEmailResult(null)
+                      setReminderEmailDialogOpen(true)
+                    }}
+                  >
+                    <CalendarClock className="mr-2 size-4" />
+                    Send Reminder Email
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
                     onClick={() =>
                       handleBulkEmailSent(selectedIds, selectedRows)
                     }
@@ -1216,9 +1272,9 @@ export function RegistrationsTable({
                 </p>
                 {bulkDeleteTargetIds.length > 0 && (
                   <div className="rounded-md border bg-muted/30 p-3">
-                    <p className="mb-1 text-xs font-medium text-muted-foreground">
+                    <span className="mb-1 text-xs font-medium text-muted-foreground">
                       Registrations:
-                    </p>
+                    </span>
                     <ul className="space-y-0.5 text-sm">
                       {(() => {
                         const targetRegs = regsState.filter((r) =>
@@ -1277,7 +1333,7 @@ export function RegistrationsTable({
             <AlertDialogTitle>
               {emailResult ? "Email Sent" : "Send Next Step Email?"}
             </AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogDescription asChild>
               {emailResult ? (
                 <span>
                   The Next Step email has been sent to {emailTargetIds.length}{" "}
@@ -1297,9 +1353,9 @@ export function RegistrationsTable({
                   </span>
                   {emailTargetRegs.length > 0 && (
                     <div className="mt-2 rounded-md border bg-muted/30 p-3">
-                      <p className="mb-1 text-xs font-medium text-muted-foreground">
+                      <span className="mb-1 text-xs font-medium text-muted-foreground">
                         Recipients:
-                      </p>
+                      </span>
                       <ul className="space-y-0.5 text-sm">
                         {emailTargetRegs.slice(0, 5).map((r) => (
                           <li key={r.id}>
@@ -1348,6 +1404,98 @@ export function RegistrationsTable({
                   }}
                 >
                   {sendingEmail ? "Sending..." : "Send Email"}
+                </AlertDialogAction>
+              </>
+            )}
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Send Reminder Email Confirmation Dialog */}
+      <AlertDialog
+        open={reminderEmailDialogOpen}
+        onOpenChange={(open) => {
+          if (!sendingReminderEmail) {
+            setReminderEmailDialogOpen(open)
+            if (!open) {
+              setReminderEmailResult(null)
+              setReminderEmailTargetIds([])
+            }
+          }
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {reminderEmailResult ? "Reminder Sent" : "Send Reminder Email?"}
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              {reminderEmailResult ? (
+                <span>
+                  Reminder email sent to {reminderEmailResult.sentCount}{" "}
+                  attendee
+                  {reminderEmailResult.sentCount !== 1 ? "s" : ""}.
+                </span>
+              ) : (
+                <p className="space-y-3">
+                  <span>
+                    This will send a reminder email to{" "}
+                    <strong>{reminderEmailTargetIds.length}</strong> attendee
+                    {reminderEmailTargetIds.length !== 1 ? "s" : ""} with their
+                    orientation date and Zoom link.
+                  </span>
+                  {(() => {
+                    const targetRegs = regsState.filter((r) =>
+                      reminderEmailTargetIds.includes(r.id)
+                    )
+                    return targetRegs.length > 0 ? (
+                      <div className="mt-2 rounded-md border bg-muted/30 p-3">
+                        <p className="mb-1 text-xs font-medium text-muted-foreground">
+                          Recipients:
+                        </p>
+                        <ul className="space-y-0.5 text-sm">
+                          {targetRegs.slice(0, 5).map((r) => (
+                            <li key={r.id}>
+                              {r.first_name} {r.last_name} ({r.email})
+                            </li>
+                          ))}
+                          {targetRegs.length > 5 && (
+                            <li className="text-muted-foreground">
+                              +{targetRegs.length - 5} more
+                            </li>
+                          )}
+                        </ul>
+                      </div>
+                    ) : null
+                  })()}
+                </p>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            {reminderEmailResult ? (
+              <AlertDialogAction
+                onClick={() => {
+                  setReminderEmailDialogOpen(false)
+                  setReminderEmailResult(null)
+                  setReminderEmailTargetIds([])
+                }}
+              >
+                Done
+              </AlertDialogAction>
+            ) : (
+              <>
+                <AlertDialogCancel disabled={sendingReminderEmail}>
+                  Cancel
+                </AlertDialogCancel>
+                <AlertDialogAction
+                  disabled={sendingReminderEmail}
+                  onClick={(e) => {
+                    e.preventDefault()
+                    handleSendReminderEmail()
+                  }}
+                >
+                  {sendingReminderEmail ? "Sending..." : "Send Reminder"}
                 </AlertDialogAction>
               </>
             )}
