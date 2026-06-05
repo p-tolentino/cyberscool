@@ -43,8 +43,8 @@ import {
   toggleEmailSent,
   toggleContacted,
   deleteRegistration,
-  sendNextStepEmail,
-  sendReminderEmail,
+  sendSingleNextStepEmail,
+  sendSingleReminderEmail,
   batchToggleEmailSent,
   batchToggleContacted,
   batchDeleteRegistrations,
@@ -905,34 +905,48 @@ export function RegistrationsTable({
   const handleSendNextStepEmail = async () => {
     if (emailTargetIds.length === 0) return
     setSendingEmail(true)
+    const total = emailTargetIds.length
+    const toastId = toast.loading(`Sending 0/${total} Next Step emails...`)
+    let sentCount = 0
+    let errorCount = 0
+    const alreadySentIds: string[] = []
+    const sentIds: string[] = []
     try {
-      const result = (await sendNextStepEmail(emailTargetIds)) as {
-        success: boolean
-        error?: string | null
-        sentCount?: number
-        alreadySentIds?: string[]
+      for (const id of emailTargetIds) {
+        const result = (await sendSingleNextStepEmail(id)) as {
+          success: boolean
+          error?: string | null
+          sent?: boolean
+        }
+        if (result.sent) {
+          sentCount++
+          sentIds.push(id)
+        } else if (result.success) {
+          alreadySentIds.push(id)
+        } else {
+          errorCount++
+        }
+        const done = sentCount + alreadySentIds.length + errorCount
+        toast.loading(`Sending ${done}/${total} Next Step emails...`, {
+          id: toastId,
+        })
+        await new Promise((resolve) => setTimeout(resolve, 750))
       }
-      if (result.success) {
-        setEmailResult({ alreadySentIds: result.alreadySentIds || [] })
+      setEmailResult({ alreadySentIds })
+      if (sentIds.length > 0) {
         setRegsState((prev) =>
           prev.map((r) =>
-            emailTargetIds.includes(r.id) ? { ...r, email_sent: true } : r
+            sentIds.includes(r.id) ? { ...r, email_sent: true } : r
           )
         )
-        if (result.alreadySentIds && result.alreadySentIds.length > 0) {
-          toast.success(
-            `Next Step email sent to ${result.sentCount} attendee(s). ${result.alreadySentIds.length} already received it.`
-          )
-        } else {
-          toast.success(
-            `Next Step email sent to ${result.sentCount} attendee(s)!`
-          )
-        }
-      } else {
-        toast.error(result.error || "Failed to send email.")
       }
+      const parts = [`Sent to ${sentCount}/${total}`]
+      if (alreadySentIds.length > 0)
+        parts.push(`${alreadySentIds.length} already received it`)
+      if (errorCount > 0) parts.push(`${errorCount} failed`)
+      toast.success(parts.join(". "), { id: toastId })
     } catch {
-      toast.error("Something went wrong.")
+      toast.error("Something went wrong.", { id: toastId })
     } finally {
       setSendingEmail(false)
     }
@@ -941,20 +955,34 @@ export function RegistrationsTable({
   const handleSendReminderEmail = async () => {
     if (reminderEmailTargetIds.length === 0) return
     setSendingReminderEmail(true)
+    const total = reminderEmailTargetIds.length
+    const toastId = toast.loading(`Sending 0/${total} reminder emails...`)
+    let sentCount = 0
+    let errorCount = 0
     try {
-      const result = (await sendReminderEmail(reminderEmailTargetIds)) as {
-        success: boolean
-        error?: string | null
-        sentCount?: number
+      for (const id of reminderEmailTargetIds) {
+        const result = (await sendSingleReminderEmail(id)) as {
+          success: boolean
+          error?: string | null
+          sent?: boolean
+        }
+        if (result.sent) {
+          sentCount++
+        } else if (!result.success) {
+          errorCount++
+        }
+        const done = sentCount + errorCount
+        toast.loading(`Sending ${done}/${total} reminder emails...`, {
+          id: toastId,
+        })
+        await new Promise((resolve) => setTimeout(resolve, 750))
       }
-      if (result.success) {
-        setReminderEmailResult({ sentCount: result.sentCount || 0 })
-        toast.success(`Reminder email sent to ${result.sentCount} attendee(s)!`)
-      } else {
-        toast.error(result.error || "Failed to send reminder email.")
-      }
+      setReminderEmailResult({ sentCount })
+      const parts = [`Sent to ${sentCount}/${total}`]
+      if (errorCount > 0) parts.push(`${errorCount} failed`)
+      toast.success(parts.join(". "), { id: toastId })
     } catch {
-      toast.error("Something went wrong.")
+      toast.error("Something went wrong.", { id: toastId })
     } finally {
       setSendingReminderEmail(false)
     }

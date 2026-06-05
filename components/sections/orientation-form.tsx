@@ -46,12 +46,12 @@ export interface OrientationDate {
 
 const orientationSchema = z
   .object({
-    firstName: z.string().min(2, "First name is required"),
-    lastName: z.string().min(2, "Last name is required"),
-    email: z.string().email("Invalid email address"),
-    phone: z.string().min(10, "Valid phone number required"),
-    heardFrom: z.string().min(1, "Please select how you heard about us"),
-    otherSource: z.string().optional(),
+    firstName: z.string().trim().min(2, "First name is required"),
+    lastName: z.string().trim().min(2, "Last name is required"),
+    email: z.string().trim().email("Invalid email address"),
+    phone: z.string().trim().min(10, "Valid phone number required"),
+    heardFrom: z.string().trim().min(1, "Please select how you heard about us"),
+    otherSource: z.string().trim().optional(),
     orientationDate: z.string().min(1, "Please select an orientation date"),
     zoomLink: z.string(),
     dataPrivacy: z

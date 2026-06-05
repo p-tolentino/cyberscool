@@ -9,13 +9,22 @@ import { Resend } from "resend"
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
+function toCapitalCase(str: string): string {
+  return str
+    .trim()
+    .replace(/\s+/g, " ")
+    .split(" ")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(" ")
+}
+
 export async function registerForOrientation(formData: FormData) {
-  const firstName = formData.get("firstName") as string
-  const lastName = formData.get("lastName") as string
-  const email = formData.get("email") as string
+  const firstName = toCapitalCase(formData.get("firstName") as string)
+  const lastName = toCapitalCase(formData.get("lastName") as string)
+  const email = (formData.get("email") as string).trim().toLowerCase()
   const phone = normalizePhone(formData.get("phone") as string)
   const heardFrom = formData.get("heardFrom") as string
-  const otherSource = formData.get("otherSource") as string | null
+  const otherSource = (formData.get("otherSource") as string)?.trim() || null
   const orientationDate = formData.get("orientationDate") as string
   const zoomLink = formData.get("zoomLink") as string
 

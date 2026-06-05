@@ -9,6 +9,12 @@ import { Resend } from "resend"
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
+type ResendErrorResponse = {
+  message: string
+  statusCode: number | null
+  name?: string
+}
+
 // --- Auth ---
 
 export async function adminLogin(formData: FormData) {
@@ -290,6 +296,7 @@ export async function sendNextStepEmail(registrationIds: string[]) {
     } else {
       sentIds.push(r.id)
     }
+    await new Promise((resolve) => setTimeout(resolve, 500))
   }
 
   if (sentIds.length > 0) {
@@ -316,6 +323,52 @@ export async function sendNextStepEmail(registrationIds: string[]) {
     sentCount: sentIds.length,
     alreadySentIds: alreadySent.map((r) => r.id),
   }
+}
+
+export async function sendSingleNextStepEmail(registrationId: string) {
+  const unauth = await requireAdmin()
+  if (unauth) return unauth
+
+  const supabase = await createClient()
+
+  const { data: reg, error } = await supabase
+    .from("orientation_registrations")
+    .select("id, first_name, email, email_sent")
+    .eq("id", registrationId)
+    .single()
+
+  if (error) return { success: false, error: error.message }
+  if (!reg) return { success: false, error: "Registration not found." }
+  if (reg.email_sent)
+    return { success: true, error: null, sent: false, id: registrationId }
+
+  let sendError: ResendErrorResponse | null = null
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const result = await resend.emails.send({
+      from: process.env.EMAIL_FROM!,
+      to: [reg.email],
+      subject: "Your Next Steps in Cybersecurity",
+      react: NextStepEmail({ firstName: reg.first_name }),
+    })
+    sendError = result.error as ResendErrorResponse | null
+    if (!sendError) break
+    if (sendError.statusCode === 429) {
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+      continue
+    }
+    break
+  }
+
+  if (sendError)
+    return { success: false, error: sendError.message, id: registrationId }
+
+  await supabase
+    .from("orientation_registrations")
+    .update({ email_sent: true })
+    .eq("id", registrationId)
+
+  revalidatePath("/admin")
+  return { success: true, error: null, sent: true, id: registrationId }
 }
 
 export async function sendReminderEmail(registrationIds: string[]) {
@@ -403,6 +456,7 @@ export async function sendReminderEmail(registrationIds: string[]) {
     } else {
       sentIds.push(r.id)
     }
+    await new Promise((resolve) => setTimeout(resolve, 500))
   }
 
   revalidatePath("/admin")
@@ -420,6 +474,102 @@ export async function sendReminderEmail(registrationIds: string[]) {
     error: null,
     sentCount: sentIds.length,
   }
+}
+
+export async function sendSingleReminderEmail(registrationId: string) {
+  const unauth = await requireAdmin()
+  if (unauth) return unauth
+
+  const supabase = await createClient()
+
+  const { data: reg, error } = await supabase
+    .from("orientation_registrations")
+    .select("id, first_name, email, orientation_date")
+    .eq("id", registrationId)
+    .single()
+
+  if (error) return { success: false, error: error.message }
+  if (!reg) return { success: false, error: "Registration not found." }
+
+  if (!reg.orientation_date) {
+    return {
+      success: false,
+      error: "No orientation date set.",
+      id: registrationId,
+    }
+  }
+
+  const orientationDate = new Date(reg.orientation_date)
+  const now = new Date()
+
+  if (orientationDate <= now) {
+    return {
+      success: false,
+      error: `Orientation date (${reg.orientation_date}) has already passed.`,
+      id: registrationId,
+    }
+  }
+
+  const { data: dates } = await supabase
+    .from("orientation_dates")
+    .select("value, zoom_link")
+
+  const zoomMap = new Map<string, string>()
+  if (dates) {
+    for (const d of dates) {
+      if (d.zoom_link) zoomMap.set(d.value, d.zoom_link)
+    }
+  }
+
+  const diffMs = orientationDate.getTime() - now.getTime()
+  const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24))
+
+  let reminderText: string
+  if (diffDays <= 1) {
+    reminderText = "See you tomorrow"
+  } else if (diffDays <= 7) {
+    reminderText = `See you in ${diffDays} days`
+  } else {
+    const weeks = Math.ceil(diffDays / 7)
+    reminderText = `See you in ${weeks} week${weeks > 1 ? "s" : ""}`
+  }
+
+  const zoomLink =
+    zoomMap.get(reg.orientation_date) || "https://cyberscoolph.com/consult"
+
+  const formattedDate = new Intl.DateTimeFormat("en-US", {
+    dateStyle: "full",
+    timeStyle: "short",
+  }).format(orientationDate)
+
+  let sendError: ResendErrorResponse | null = null
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const result = await resend.emails.send({
+      from: process.env.EMAIL_FROM!,
+      to: [reg.email],
+      subject: `${reminderText}, ${reg.first_name}!`,
+      react: ReminderEmail({
+        firstName: reg.first_name,
+        reminderText,
+        orientationDate: formattedDate,
+        zoomLink,
+      }),
+    })
+    sendError = result.error as ResendErrorResponse | null
+    if (!sendError) break
+    if (sendError.statusCode === 429) {
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+      continue
+    }
+    break
+  }
+
+  if (sendError) {
+    return { success: false, error: sendError.message, id: registrationId }
+  }
+
+  revalidatePath("/admin")
+  return { success: true, error: null, sent: true, id: registrationId }
 }
 
 export async function batchToggleEmailSent(ids: string[], setTo: boolean) {
